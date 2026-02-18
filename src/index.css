@@ -63,6 +63,17 @@ body {
   }
 }
 
+@keyframes dockSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .developer-card-reveal {
   opacity: 0;
   transform: translateY(18px) scale(0.985);
@@ -372,4 +383,20 @@ textarea {
 .dark .workbench-theme .hover\:bg-cyan-700:hover,
 .dark .workbench-theme .hover\:bg-emerald-700:hover {
   background-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+.admin-dock-track {
+  scroll-behavior: smooth;
+}
+
+.admin-dock-item {
+  transition:
+    transform 280ms ease,
+    opacity 280ms ease,
+    filter 280ms ease,
+    background-color 280ms ease,
+    border-color 280ms ease,
+    color 280ms ease,
+    box-shadow 280ms ease;
+  will-change: transform, opacity, filter;
 }
