@@ -1,0 +1,1 @@
+export const CURRENCY_OPTIONS = ['USD', 'INR', 'EUR', 'GBP', 'AED']
