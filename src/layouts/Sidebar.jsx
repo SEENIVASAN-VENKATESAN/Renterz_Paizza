@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { NavLink } from 'react-router-dom'
-import { MessageSquare, TriangleAlert, Wrench } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { House, MessageSquare, TriangleAlert, Wrench } from 'lucide-react'
 import logo from '../assets/logo-clean.png'
 import { EXTRA_NAV_ITEMS, NAV_ITEMS } from '../constants/navigation'
 import { ROLES } from '../constants/roles'
@@ -8,26 +8,50 @@ import { classNames } from '../utils/classNames'
 
 export default function Sidebar({ role, open, onClose }) {
   const isAdmin = role === ROLES.ADMIN
+  const [isMobileDock, setIsMobileDock] = useState(() => window.innerWidth < 1024)
   const [activeDockIndex, setActiveDockIndex] = useState(0)
   const dockRef = useRef(null)
   const dockItemRefs = useRef([])
-  const visibleMain = NAV_ITEMS.filter((item) => item.roles.includes(role))
+  const navigate = useNavigate()
+  const location = useLocation()
+  const visibleMain = useMemo(() => NAV_ITEMS.filter((item) => item.roles.includes(role)), [role])
   const extraIconByPath = {
     '/maintenance': Wrench,
     '/damage-reports': TriangleAlert,
     '/communication': MessageSquare,
   }
-  const visibleExtra = EXTRA_NAV_ITEMS
-    .filter((item) => item.roles.includes(role))
-    .map((item) => ({ ...item, icon: extraIconByPath[item.to] || MessageSquare }))
-  const adminItems = [...visibleMain, ...visibleExtra]
+  const visibleExtra = useMemo(
+    () =>
+      EXTRA_NAV_ITEMS
+        .filter((item) => item.roles.includes(role))
+        .map((item) => ({ ...item, icon: extraIconByPath[item.to] || MessageSquare })),
+    [role]
+  )
+  const adminItems = useMemo(() => [...visibleMain, ...visibleExtra], [visibleMain, visibleExtra])
+  const mobileDockItems = useMemo(() => {
+    const homeItem = adminItems.find((item) => item.to === '/dashboard')
+    const nonHomeItems = adminItems.filter((item) => item.to !== '/dashboard')
+    const mid = Math.floor(nonHomeItems.length / 2)
+    return homeItem
+      ? [...nonHomeItems.slice(0, mid), { ...homeItem, icon: House }, ...nonHomeItems.slice(mid)]
+      : adminItems
+  }, [adminItems])
+  const dockItems = isMobileDock ? mobileDockItems : adminItems
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileDock(window.innerWidth < 1024)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     if (!isAdmin) return undefined
 
-    const updateActiveIndex = () => {
+    const isDesktop = () => !isMobileDock
+
+    const getClosestIndex = () => {
       const container = dockRef.current
-      if (!container) return
+      if (!container) return 0
 
       const containerRect = container.getBoundingClientRect()
       const centerX = containerRect.left + containerRect.width / 2
@@ -46,20 +70,59 @@ export default function Sidebar({ role, open, onClose }) {
         }
       })
 
+      return closestIndex
+    }
+
+    const centerItem = (index, behavior = 'smooth') => {
+      const container = dockRef.current
+      const node = dockItemRefs.current[index]
+      if (!container || !node) return
+      const containerRect = container.getBoundingClientRect()
+      const nodeRect = node.getBoundingClientRect()
+      const delta = nodeRect.left + nodeRect.width / 2 - (containerRect.left + containerRect.width / 2)
+      container.scrollTo({ left: container.scrollLeft + delta, behavior })
+    }
+
+    const updateActiveIndex = () => {
+      const closestIndex = getClosestIndex()
       setActiveDockIndex(closestIndex)
+      return closestIndex
     }
 
     const container = dockRef.current
-    updateActiveIndex()
+    const homeIndex = dockItems.findIndex((item) => item.to === '/dashboard')
+    if (!isDesktop() && homeIndex >= 0) {
+      setActiveDockIndex(homeIndex)
+      centerItem(homeIndex, 'auto')
+    } else {
+      updateActiveIndex()
+    }
+
     if (!container) return undefined
 
-    container.addEventListener('scroll', updateActiveIndex, { passive: true })
+    let settleTimer = null
+    const onScroll = () => {
+      if (isDesktop()) return
+      const closestIndex = updateActiveIndex()
+      if (settleTimer) clearTimeout(settleTimer)
+      settleTimer = setTimeout(() => {
+        const target = dockItems[closestIndex]
+        if (!target) return
+        centerItem(closestIndex)
+        if (location.pathname !== target.to) {
+          navigate(target.to)
+        }
+      }, 140)
+    }
+
+    container.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', updateActiveIndex)
     return () => {
-      container.removeEventListener('scroll', updateActiveIndex)
+      if (settleTimer) clearTimeout(settleTimer)
+      container.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', updateActiveIndex)
     }
-  }, [isAdmin, adminItems.length])
+  }, [isAdmin, isMobileDock, dockItems, navigate, location.pathname])
 
   if (isAdmin) {
     return (
@@ -71,10 +134,13 @@ export default function Sidebar({ role, open, onClose }) {
           <nav className="flex justify-center lg:mt-10">
             <div
               ref={dockRef}
-              className="w-full overflow-x-auto rounded-[999px] border border-white/12 bg-[linear-gradient(180deg,rgba(30,34,49,0.82),rgba(14,16,26,0.86))] p-2 shadow-[0_22px_40px_rgba(2,6,23,0.5)] backdrop-blur-xl lg:w-[62px] lg:overflow-visible"
+              className={classNames(
+                'w-full rounded-[999px] border border-white/12 bg-[linear-gradient(180deg,rgba(30,34,49,0.82),rgba(14,16,26,0.86))] p-2 shadow-[0_22px_40px_rgba(2,6,23,0.5)] backdrop-blur-xl lg:w-[62px] lg:overflow-visible',
+                isMobileDock ? 'snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden' : 'overflow-visible'
+              )}
             >
               <div className="flex min-w-max flex-row items-center justify-start gap-2 lg:min-w-0 lg:flex-col lg:justify-center">
-                {adminItems.map((item, index) => (
+                {dockItems.map((item, index) => (
                   <NavLink
                     key={item.to}
                     ref={(node) => {
@@ -85,16 +151,18 @@ export default function Sidebar({ role, open, onClose }) {
                     title={item.label}
                     className={({ isActive }) =>
                       classNames(
-                        'inline-flex h-11 w-11 items-center justify-center rounded-full border text-[#9ca4c8] transition',
+                        'snap-center inline-flex h-11 w-11 items-center justify-center rounded-full border text-[#9ca4c8] transition',
                         isActive
                           ? 'border-[#8f7be8]/45 bg-[radial-gradient(circle_at_30%_20%,rgba(173,158,255,0.38),rgba(92,78,158,0.62))] text-white shadow-[0_10px_24px_rgba(70,56,136,0.55)]'
                           : 'border-transparent hover:border-white/15 hover:bg-white/10 hover:text-[#d4d9f1]',
-                        index === activeDockIndex
-                          ? 'z-20 scale-100 opacity-100'
-                          : Math.abs(index - activeDockIndex) === 1
-                          ? 'scale-90 opacity-80 translate-y-0.5'
-                          : 'scale-[0.82] opacity-60 translate-y-1',
-                        'lg:scale-100 lg:opacity-100 lg:translate-y-0'
+                        isMobileDock && index === activeDockIndex
+                          ? 'z-20 scale-100 opacity-100 blur-0 border-white/30 bg-white/12 text-white'
+                          : isMobileDock && Math.abs(index - activeDockIndex) === 1
+                          ? 'scale-90 opacity-70 blur-[1px] translate-y-0.5'
+                          : isMobileDock
+                          ? 'scale-[0.82] opacity-45 blur-[2px] translate-y-1'
+                          : '',
+                        'lg:scale-100 lg:opacity-100 lg:translate-y-0 lg:blur-0'
                       )
                     }
                   >
