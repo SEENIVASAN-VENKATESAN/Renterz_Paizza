@@ -1,5 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import FormField from '../../components/forms/FormField'
@@ -9,6 +10,7 @@ import { useToast } from '../../hooks/useToast'
 import { loginSchema } from '../../utils/validationSchemas'
 
 export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false)
   const { login, loading } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
@@ -45,7 +47,22 @@ export default function LoginPage() {
         </FormField>
 
         <FormField label="Password" error={errors.password?.message}>
-          <input {...register('password')} type="password" className="input-base auth-input" placeholder="Eg. ********" />
+          <div className="relative">
+            <input
+              {...register('password')}
+              type={showPassword ? 'text' : 'password'}
+              className="input-base auth-input pr-10"
+              placeholder="Eg. ********"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-soft"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </FormField>
 
         <Button className="w-full" type="submit" disabled={!isValid || loading}>

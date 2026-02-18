@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Upload, UserPlus } from 'lucide-react'
+import { Eye, EyeOff, Plus, Trash2, Upload, UserPlus } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Modal from '../../components/ui/Modal'
@@ -15,6 +15,7 @@ import { formatCurrency } from '../../utils/formatters'
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [openAddUserModal, setOpenAddUserModal] = useState(false)
+  const [showAddUserPassword, setShowAddUserPassword] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [users, setUsers] = useState([])
   const [formData, setFormData] = useState({
@@ -63,6 +64,7 @@ export default function AdminDashboard() {
         password: '',
       })
       setOpenAddUserModal(false)
+      setShowAddUserPassword(false)
       showToast('User added successfully', 'success')
     } catch (error) {
       showToast(error.message || 'Unable to add user', 'error')
@@ -179,7 +181,24 @@ export default function AdminDashboard() {
             <option value={ROLES.OWNER}>OWNER</option>
             <option value={ROLES.TENANT}>TENANT</option>
           </select>
-          <input name="password" value={formData.password} onChange={handleChange} type="password" className="input-base" placeholder="Password" />
+          <div className="relative">
+            <input
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              type={showAddUserPassword ? 'text' : 'password'}
+              className="input-base pr-10"
+              placeholder="Password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowAddUserPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-soft"
+              aria-label={showAddUserPassword ? 'Hide password' : 'Show password'}
+            >
+              {showAddUserPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
           <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">
             <Plus size={15} /> Add User
           </button>
