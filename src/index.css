@@ -52,6 +52,8 @@ body {
   color: var(--text);
 }
 
+
+
 @keyframes developerCardIn {
   from {
     opacity: 0;
@@ -71,6 +73,32 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes dockActivePulse {
+  0%,
+  100% {
+    box-shadow:
+      0 12px 26px rgba(72, 58, 140, 0.5),
+      0 0 0 0 rgba(143, 123, 232, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 16px 34px rgba(72, 58, 140, 0.62),
+      0 0 0 12px rgba(143, 123, 232, 0.04);
+  }
+}
+
+@keyframes dockIconPop {
+  0% {
+    transform: scale(1);
+  }
+  60% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1.08);
   }
 }
 
@@ -389,14 +417,132 @@ textarea {
   scroll-behavior: smooth;
 }
 
+.admin-dock-outer-desktop {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94));
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.admin-dock-shell-desktop {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94));
+  box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
+}
+
+.admin-dock-idle {
+  color: #334155;
+}
+
+.admin-dock-idle:hover {
+  border-color: rgba(148, 163, 184, 0.45) !important;
+  background: rgba(226, 232, 240, 0.6) !important;
+  color: #020617;
+}
+
+.admin-dock-selected {
+  position: relative;
+  transform: translateY(0) scale(1.16) !important;
+  border-color: rgba(143, 123, 232, 0.45) !important;
+  background: radial-gradient(circle at 30% 20%, #9d8df1, #6051c0 56%, #4b3da2) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 24px rgba(70, 56, 136, 0.55) !important;
+  animation: dockActivePulse 1.9s ease-in-out infinite;
+  z-index: 3;
+}
+
 .admin-dock-item {
+  color: #9ca4c8;
   transition:
-    transform 280ms ease,
-    opacity 280ms ease,
-    filter 280ms ease,
-    background-color 280ms ease,
-    border-color 280ms ease,
-    color 280ms ease,
-    box-shadow 280ms ease;
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease,
+    filter 220ms ease,
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease,
+    box-shadow 240ms ease;
   will-change: transform, opacity, filter;
+}
+
+.admin-dock-item svg {
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.admin-dock-item:hover svg {
+  transform: scale(1.12);
+}
+
+.dark .admin-dock-outer-desktop {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(10, 12, 19, 0.96), rgba(6, 8, 14, 0.92));
+  box-shadow: none;
+}
+
+.dark .admin-dock-shell-desktop {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(30, 34, 49, 0.82), rgba(14, 16, 26, 0.86));
+  box-shadow: 0 22px 40px rgba(2, 6, 23, 0.5);
+}
+
+.dark .admin-dock-idle {
+  color: #9ca4c8;
+}
+
+.dark .admin-dock-idle:hover {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #d4d9f1;
+}
+
+@media (max-width: 1023px) {
+  .admin-dock-track {
+    padding-left: calc(50% - 24px);
+    padding-right: calc(50% - 24px);
+    padding-top: 0.7rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .admin-dock-u-shell {
+    position: relative;
+    min-height: 72px;
+    overflow: visible;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.94));
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.12);
+    border-radius: 999px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .dark .admin-dock-u-shell {
+    border: 0;
+    background: linear-gradient(180deg, rgba(30, 34, 49, 0.82), rgba(14, 16, 26, 0.86));
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.34);
+  }
+
+  .admin-dock-u-shell::before {
+    content: none;
+  }
+
+  .admin-dock-u-shell::after {
+    content: none;
+  }
+
+  .admin-dock-u-shell > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .admin-dock-selected svg {
+    animation: dockIconPop 260ms ease-out;
+  }
+
+  .admin-dock-selected::after {
+    content: '';
+    position: absolute;
+    inset: -7px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(143, 123, 232, 0.24), rgba(143, 123, 232, 0));
+    filter: blur(6px);
+    z-index: -1;
+  }
 }

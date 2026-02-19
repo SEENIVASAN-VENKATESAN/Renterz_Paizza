@@ -45,10 +45,10 @@ export const dashboardByRole = {
 }
 
 export const propertiesSeed = [
-  { id: 1, name: 'Skyline Heights', city: 'New York', type: 'APARTMENT', status: 'ACTIVE', units: 64 },
-  { id: 2, name: 'Palm Crest Residency', city: 'Miami', type: 'VILLA', status: 'ACTIVE', units: 32 },
-  { id: 3, name: 'Maple Business Hub', city: 'Chicago', type: 'COMMERCIAL', status: 'INACTIVE', units: 18 },
-  { id: 4, name: 'Rivera Studio Park', city: 'Austin', type: 'STUDIO', status: 'ACTIVE', units: 40 },
+  { id: 1, name: 'Skyline Heights', city: 'New York', type: 'Apartment', status: 'ACTIVE', units: 64 },
+  { id: 2, name: 'Palm Crest Residency', city: 'Miami', type: 'Building', status: 'ACTIVE', units: 32 },
+  { id: 3, name: 'Maple Business Hub', city: 'Chicago', type: 'PG', status: 'INACTIVE', units: 18 },
+  { id: 4, name: 'Rivera Studio Park', city: 'Austin', type: 'Apartment', status: 'ACTIVE', units: 40 },
 ]
 
 export const unitsSeed = [

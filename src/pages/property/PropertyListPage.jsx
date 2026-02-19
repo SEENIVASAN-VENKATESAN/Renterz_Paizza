@@ -12,7 +12,7 @@ import { PROPERTY_TYPES } from '../../constants/status'
 import { usePagination } from '../../hooks/usePagination'
 import { propertiesSeed } from '../../services/mockData'
 
-const emptyProperty = { name: '', city: '', type: 'APARTMENT', status: 'ACTIVE', units: 0 }
+const emptyProperty = { name: '', city: '', type: 'Apartment', status: 'ACTIVE', units: 0 }
 
 export default function PropertyListPage() {
   const [loading, setLoading] = useState(true)

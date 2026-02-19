@@ -12,6 +12,6 @@ export const STATUS_COLORS = {
   INACTIVE: 'bg-slate-100 text-slate-700 border-slate-200',
 }
 
-export const PROPERTY_TYPES = ['APARTMENT', 'VILLA', 'COMMERCIAL', 'STUDIO']
+export const PROPERTY_TYPES = ['Apartment', 'Building', 'PG']
 export const PROPERTY_STATUS = ['ACTIVE', 'INACTIVE']
 export const COMM_CHANNELS = ['SMS', 'EMAIL', 'WHATSAPP', 'VOICE']

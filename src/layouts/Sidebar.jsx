@@ -9,7 +9,6 @@ import { classNames } from '../utils/classNames'
 export default function Sidebar({ role, open, onClose }) {
   const isAdmin = role === ROLES.ADMIN
   const [isMobileDock, setIsMobileDock] = useState(() => window.innerWidth < 1024)
-  const [activeDockIndex, setActiveDockIndex] = useState(0)
   const dockRef = useRef(null)
   const dockItemRefs = useRef([])
   const mobileDockInitializedRef = useRef(false)
@@ -53,6 +52,36 @@ export default function Sidebar({ role, open, onClose }) {
 
     const isDesktop = () => !isMobileDock
 
+    const applyDockFocus = () => {
+      if (isDesktop()) {
+        dockItemRefs.current.forEach((node) => {
+          if (!node) return
+          node.style.transform = ''
+          node.style.opacity = ''
+        })
+        return
+      }
+
+      const container = dockRef.current
+      if (!container) return
+      const containerRect = container.getBoundingClientRect()
+      const centerX = containerRect.left + containerRect.width / 2
+      const maxDistance = 130
+
+      dockItemRefs.current.forEach((node) => {
+        if (!node) return
+        const rect = node.getBoundingClientRect()
+        const itemCenter = rect.left + rect.width / 2
+        const distance = Math.abs(centerX - itemCenter)
+        const ratio = Math.max(0, 1 - distance / maxDistance)
+        const scale = 0.9 + ratio * 0.2
+        const lift = 0
+        const opacity = 0.64 + ratio * 0.36
+        node.style.transform = `translateY(${lift.toFixed(2)}px) scale(${scale.toFixed(3)})`
+        node.style.opacity = opacity.toFixed(3)
+      })
+    }
+
     const getClosestIndex = () => {
       const container = dockRef.current
       if (!container) return 0
@@ -91,21 +120,20 @@ export default function Sidebar({ role, open, onClose }) {
       } else {
         setTimeout(() => {
           autoScrollingRef.current = false
-        }, 260)
+        }, 220)
       }
     }
 
     const updateActiveIndex = () => {
-      const closestIndex = getClosestIndex()
-      setActiveDockIndex(closestIndex)
-      return closestIndex
+      const closest = getClosestIndex()
+      applyDockFocus()
+      return closest
     }
 
     const container = dockRef.current
     const homeIndex = dockItems.findIndex((item) => item.to === '/dashboard')
     if (!isDesktop() && homeIndex >= 0 && !mobileDockInitializedRef.current) {
       mobileDockInitializedRef.current = true
-      setActiveDockIndex(homeIndex)
       centerItem(homeIndex, 'auto')
     } else {
       updateActiveIndex()
@@ -126,9 +154,10 @@ export default function Sidebar({ role, open, onClose }) {
           navigate(target.to)
         }
         lastNavigatedIndexRef.current = closestIndex
-      }, 140)
+      }, 90)
     }
 
+    applyDockFocus()
     container.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', updateActiveIndex)
     return () => {
@@ -141,50 +170,63 @@ export default function Sidebar({ role, open, onClose }) {
   if (isAdmin) {
     return (
       <>
-        <aside className="fixed bottom-3 left-0 right-0 z-40 mx-auto w-[calc(100vw-2.2rem)] max-w-[540px] rounded-full border border-white/12 bg-[linear-gradient(180deg,rgba(10,12,19,0.96),rgba(6,8,14,0.92))] px-2.5 py-2.5 backdrop-blur-md motion-safe:animate-[dockSlideUp_320ms_ease-out_both] lg:inset-y-0 lg:left-0 lg:right-auto lg:mx-0 lg:w-24 lg:max-w-none lg:rounded-none lg:border-r lg:border-t-0 lg:border-l-0 lg:border-b-0 lg:p-3 lg:motion-safe:animate-none">
+        <aside
+          className={classNames(
+            'fixed bottom-3 left-0 right-0 z-40 mx-auto w-[calc(100vw-2.2rem)] max-w-[540px] px-2.5 py-2.5 motion-safe:animate-[dockSlideUp_320ms_ease-out_both] lg:inset-y-0 lg:left-0 lg:right-auto lg:mx-0 lg:w-24 lg:max-w-none lg:rounded-none lg:border-r lg:border-t-0 lg:border-l-0 lg:border-b-0 lg:p-3 lg:motion-safe:animate-none',
+            isMobileDock
+              ? 'border-0 bg-transparent backdrop-blur-0'
+              : 'admin-dock-outer-desktop rounded-full backdrop-blur-md'
+          )}
+        >
           <div className="mt-2 hidden justify-center lg:flex">
             <img src={logo} alt="Renterz logo" className="h-11 w-11 rounded-xl border border-base object-cover" />
           </div>
           <nav className="flex justify-center lg:mt-10">
             <div
-              ref={dockRef}
               className={classNames(
-                'w-full rounded-[999px] border border-white/12 bg-[linear-gradient(180deg,rgba(30,34,49,0.82),rgba(14,16,26,0.86))] p-2.5 shadow-[0_22px_40px_rgba(2,6,23,0.5)] backdrop-blur-xl lg:w-[62px] lg:overflow-visible',
-                isMobileDock ? 'admin-dock-track snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden' : 'overflow-visible'
+                'w-full lg:w-[62px] lg:overflow-visible',
+                isMobileDock
+                  ? 'admin-dock-u-shell'
+                  : 'admin-dock-shell-desktop rounded-[999px] p-2.5 backdrop-blur-xl overflow-visible'
               )}
             >
-              <div className="flex min-w-max flex-row items-center justify-start gap-2.5 lg:min-w-0 lg:flex-col lg:justify-center">
-                <span className="w-[calc(50vw-2.25rem)] shrink-0 lg:hidden" aria-hidden="true" />
-                {dockItems.map((item, index) => (
-                  <NavLink
-                    key={item.to}
-                    ref={(node) => {
-                      dockItemRefs.current[index] = node
-                    }}
-                    to={item.to}
-                    onClick={onClose}
-                    title={item.label}
-                    className={({ isActive }) =>
-                      classNames(
-                        'admin-dock-item snap-center inline-flex h-12 w-12 items-center justify-center rounded-full border text-[#9ca4c8]',
-                        isActive
-                          ? 'border-[#8f7be8]/45 bg-[radial-gradient(circle_at_30%_20%,rgba(173,158,255,0.38),rgba(92,78,158,0.62))] text-white shadow-[0_10px_24px_rgba(70,56,136,0.55)]'
-                          : 'border-transparent hover:border-white/15 hover:bg-white/10 hover:text-[#d4d9f1]',
-                        isMobileDock && index === activeDockIndex
-                          ? 'z-20 scale-100 opacity-100 blur-0 border-white/30 bg-white/12 text-white'
-                          : isMobileDock && Math.abs(index - activeDockIndex) === 1
-                          ? 'scale-90 opacity-70 blur-[1px] translate-y-0.5'
-                          : isMobileDock
-                          ? 'scale-[0.82] opacity-45 blur-[2px] translate-y-1'
-                          : '',
-                        'lg:scale-100 lg:opacity-100 lg:translate-y-0 lg:blur-0'
-                      )
-                    }
-                  >
-                    <item.icon size={19} />
-                  </NavLink>
-                ))}
-                <span className="w-[calc(50vw-2.25rem)] shrink-0 lg:hidden" aria-hidden="true" />
+              <div
+                ref={dockRef}
+                className={classNames(
+                  isMobileDock
+                    ? 'admin-dock-track snap-x snap-mandatory overflow-x-auto pt-2.5 pb-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+                    : ''
+                )}
+              >
+                <div
+                  className={classNames(
+                    'flex items-center gap-2.5',
+                    isMobileDock ? 'w-max flex-row' : 'min-w-0 flex-col justify-center'
+                  )}
+                >
+                  {dockItems.map((item, index) => (
+                    <NavLink
+                      key={item.to}
+                      ref={(node) => {
+                        dockItemRefs.current[index] = node
+                      }}
+                      to={item.to}
+                      onClick={onClose}
+                      title={item.label}
+                      className={({ isActive }) =>
+                        classNames(
+                          'admin-dock-item snap-center inline-flex h-12 w-12 items-center justify-center rounded-full border',
+                          isActive
+                            ? 'admin-dock-selected'
+                            : 'admin-dock-idle border-transparent',
+                          'lg:scale-100 lg:opacity-100 lg:translate-y-0 lg:blur-0'
+                        )
+                      }
+                    >
+                      <item.icon size={19} />
+                    </NavLink>
+                  ))}
+                </div>
               </div>
             </div>
           </nav>

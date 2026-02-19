@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Bell, LogOut, Menu, Moon, Sun } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import logo from '../assets/logo-clean.png'
 import { ROLES } from '../constants/roles'
 import { useAuth } from '../hooks/useAuth'
 
@@ -10,7 +9,6 @@ export default function TopNavbar({ onToggleSidebar, darkMode, onToggleTheme, cu
   const { user, logout } = useAuth()
   const [openProfileMenu, setOpenProfileMenu] = useState(false)
   const profileMenuRef = useRef(null)
-  const showHeaderLogo = user?.role !== ROLES.ADMIN
   const showSidebarToggle = user?.role !== ROLES.ADMIN
   const panelTitle = user?.role === ROLES.ADMIN ? 'Admin Panel' : 'Rent Tracking Platform'
 
@@ -58,7 +56,6 @@ export default function TopNavbar({ onToggleSidebar, darkMode, onToggleTheme, cu
             <Menu size={18} />
           </button>
         ) : null}
-        {showHeaderLogo ? <img src={logo} alt="Renterz logo" className="h-8 w-8 rounded-lg border border-base object-cover" /> : null}
         <h1 className="text-lg font-bold text-main">{panelTitle}</h1>
       </div>
       <div className="flex items-center gap-3">
