@@ -120,7 +120,7 @@ export default function Sidebar({ role, open, onClose }) {
       } else {
         setTimeout(() => {
           autoScrollingRef.current = false
-        }, 220)
+        }, 120)
       }
     }
 
@@ -154,7 +154,7 @@ export default function Sidebar({ role, open, onClose }) {
           navigate(target.to)
         }
         lastNavigatedIndexRef.current = closestIndex
-      }, 90)
+      }, 24)
     }
 
     applyDockFocus()

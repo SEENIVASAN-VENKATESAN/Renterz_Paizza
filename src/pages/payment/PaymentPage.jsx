@@ -4,13 +4,24 @@ import Modal from '../../components/ui/Modal'
 import Skeleton from '../../components/ui/Skeleton'
 import StatusBadge from '../../components/ui/StatusBadge'
 import Table from '../../components/ui/Table'
+import { PAYMENTS_KEY } from '../../constants/app'
 import { usePageLoading } from '../../hooks/usePageLoading'
 import { paymentsSeed } from '../../services/mockData'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 
+function readPayments() {
+  try {
+    const raw = localStorage.getItem(PAYMENTS_KEY)
+    const parsed = raw ? JSON.parse(raw) : paymentsSeed
+    return Array.isArray(parsed) ? parsed : paymentsSeed
+  } catch {
+    return paymentsSeed
+  }
+}
+
 export default function PaymentPage() {
   const loading = usePageLoading(350)
-  const [payments] = useState(paymentsSeed)
+  const [payments] = useState(readPayments)
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [dateFilter, setDateFilter] = useState('')
   const [selected, setSelected] = useState(null)

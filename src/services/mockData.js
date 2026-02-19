@@ -92,8 +92,28 @@ export const complaintSeed = [
 ]
 
 export const damageReportsSeed = [
-  { id: 1, unit: 'A-303', beforeImage: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=400&q=70', afterImage: 'https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=400&q=70', estimatedCost: 2300, status: 'IN_PROGRESS' },
-  { id: 2, unit: 'D-411', beforeImage: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=400&q=70', afterImage: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=400&q=70', estimatedCost: 900, status: 'CLOSED' },
+  {
+    id: 1,
+    property: 'Palm Crest Residency',
+    unit: 'A-303',
+    floor: 3,
+    tenantEmail: 'tenant@renterz.com',
+    beforeImage: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=400&q=70',
+    afterImage: 'https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=400&q=70',
+    estimatedCost: 2300,
+    status: 'IN_PROGRESS',
+  },
+  {
+    id: 2,
+    property: 'Rivera Studio Park',
+    unit: 'D-411',
+    floor: 4,
+    tenantEmail: 'someone@example.com',
+    beforeImage: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=400&q=70',
+    afterImage: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=400&q=70',
+    estimatedCost: 900,
+    status: 'CLOSED',
+  },
 ]
 
 export const communicationSeed = [

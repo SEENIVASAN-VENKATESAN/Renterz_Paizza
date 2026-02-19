@@ -43,8 +43,14 @@ body,
   min-height: 100%;
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
+  position: relative;
   font-family: 'Manrope', 'Segoe UI', sans-serif;
   background:
     radial-gradient(circle at 0% 0%, rgba(20, 184, 166, 0.11), transparent 30%),
@@ -52,6 +58,33 @@ body {
     radial-gradient(circle at 35% 25%, rgba(20, 184, 166, 0.05), transparent 40%),
     var(--bg);
   color: var(--text);
+  overflow-x: hidden;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  width: 42vmax;
+  height: 42vmax;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(46px);
+}
+
+body::before {
+  top: -20vmax;
+  left: -14vmax;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.16) 0%, rgba(59, 130, 246, 0) 70%);
+  animation: ambientDriftA 20s ease-in-out infinite;
+}
+
+body::after {
+  bottom: -24vmax;
+  right: -12vmax;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0) 72%);
+  animation: ambientDriftB 24s ease-in-out infinite;
 }
 
 
@@ -117,6 +150,164 @@ body {
   }
 }
 
+@keyframes registerSuccessPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes registerSuccessCheckPulse {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.35);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes registerRedirectSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes registerRedirectDotPulse {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  40% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+@keyframes devCtaGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.26);
+  }
+  50% {
+    box-shadow: 0 0 0 9px rgba(96, 165, 250, 0);
+  }
+}
+
+@keyframes devLinkedinFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes devIconNudge {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes loginFormItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loginButtonGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+  }
+}
+
+@keyframes loginArrowSlide {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes ambientDriftA {
+  0% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(8%, 6%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+}
+
+@keyframes ambientDriftB {
+  0% {
+    transform: translate3d(8%, 6%, 0) scale(1.02);
+  }
+  50% {
+    transform: translate3d(-8%, -6%, 0) scale(1.1);
+  }
+  100% {
+    transform: translate3d(8%, 6%, 0) scale(1.02);
+  }
+}
+
+@keyframes landingAuraDriftA {
+  0% {
+    transform: translate3d(-4%, -3%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, 4%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-4%, -3%, 0) scale(1);
+  }
+}
+
+@keyframes landingAuraDriftB {
+  0% {
+    transform: translate3d(5%, 4%, 0) scale(1.02);
+  }
+  50% {
+    transform: translate3d(-6%, -5%, 0) scale(1.1);
+  }
+  100% {
+    transform: translate3d(5%, 4%, 0) scale(1.02);
+  }
+}
+
 .developer-card-reveal {
   opacity: 0;
   transform: translateY(18px) scale(0.985);
@@ -155,6 +346,11 @@ body {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  body::before,
+  body::after {
+    animation: none;
   }
 }
 
@@ -241,6 +437,187 @@ textarea {
 
 .register-form .auth-input:focus::placeholder {
   color: transparent;
+}
+
+.register-success-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid #86efac;
+  background: #f0fdf4;
+  color: #166534;
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  font-size: 0.9rem;
+  animation: registerSuccessPopIn 300ms ease-out both;
+}
+
+.register-success-check {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #10b981;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+  animation: registerSuccessCheckPulse 900ms ease-out;
+}
+
+.register-redirect-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  animation: registerSuccessPopIn 300ms ease-out both;
+}
+
+.register-redirect-spinner {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 999px;
+  border: 2px solid #93c5fd;
+  border-top-color: #2563eb;
+  animation: registerRedirectSpin 900ms linear infinite;
+}
+
+.register-redirect-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.register-redirect-dots span {
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: 999px;
+  background: #2563eb;
+  animation: registerRedirectDotPulse 1s ease-in-out infinite;
+}
+
+.register-redirect-dots span:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.register-redirect-dots span:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+.dev-mail-cta,
+.dev-linkedin-cta {
+  will-change: transform, box-shadow;
+}
+
+.dev-mail-cta:hover {
+  animation: devCtaGlow 1s ease-out infinite;
+}
+
+.dev-mail-cta svg {
+  transition: transform 180ms ease;
+}
+
+.dev-mail-cta:hover svg {
+  animation: devIconNudge 420ms ease-out;
+}
+
+.dev-linkedin-cta {
+  animation: devLinkedinFloat 1.8s ease-in-out infinite;
+}
+
+.dev-linkedin-cta:hover {
+  animation-duration: 1s;
+  transform: translateY(-1px) scale(1.04);
+}
+
+.login-form-item {
+  opacity: 0;
+  animation: loginFormItemIn 420ms ease-out forwards;
+  animation-delay: var(--login-delay, 0ms);
+}
+
+.login-submit-cta {
+  will-change: transform, box-shadow;
+}
+
+.login-submit-cta:hover {
+  animation: loginButtonGlow 1s ease-out infinite;
+}
+
+.login-submit-icon {
+  transition: transform 180ms ease;
+}
+
+.login-submit-cta:hover .login-submit-icon {
+  animation: loginArrowSlide 450ms ease-out;
+}
+
+.landing-ambient {
+  position: relative;
+  isolation: isolate;
+  perspective: 1200px;
+}
+
+.landing-ambient::before,
+.landing-ambient::after {
+  content: '';
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(28px);
+}
+
+.landing-ambient::before {
+  top: -70px;
+  left: -40px;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0) 70%);
+  animation: landingAuraDriftA 12s ease-in-out infinite;
+}
+
+.landing-ambient::after {
+  bottom: -90px;
+  right: -40px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.2) 0%, rgba(20, 184, 166, 0) 72%);
+  animation: landingAuraDriftB 14s ease-in-out infinite;
+}
+
+@media (max-width: 1023px) {
+  .landing-ambient::before,
+  .landing-ambient::after {
+    animation: none;
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dev-mail-cta:hover,
+  .dev-linkedin-cta,
+  .dev-mail-cta:hover svg {
+    animation: none;
+  }
+
+  .login-form-item,
+  .login-submit-cta:hover,
+  .login-submit-cta:hover .login-submit-icon {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .landing-ambient::before,
+  .landing-ambient::after {
+    animation: none;
+  }
 }
 
 .hover-surface-soft:hover {

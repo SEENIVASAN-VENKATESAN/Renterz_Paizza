@@ -71,17 +71,19 @@ export const userService = {
   addUser(payload) {
     const users = readUsers()
     const email = payload.email.trim().toLowerCase()
-    const exists = users.some((item) => item.email.toLowerCase() === email)
+    const mobile = payload.mobile?.trim() || ''
+    const emailExists = users.some((item) => item.email.toLowerCase() === email)
+    const mobileExists = mobile ? users.some((item) => (item.mobile || '').trim() === mobile) : false
 
-    if (exists) {
-      throw new Error('A user with this email already exists')
+    if (emailExists || mobileExists) {
+      throw new Error('Email or mobile already used')
     }
 
     const nextUser = {
       id: Date.now(),
       fullName: payload.fullName.trim(),
       email,
-      mobile: payload.mobile?.trim() || '',
+      mobile,
       role: payload.role,
       password: payload.password,
     }

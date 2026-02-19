@@ -1,8 +1,34 @@
-import { Mail, MapPin, Phone } from 'lucide-react'
+﻿import { Coffee, Github, Instagram, Linkedin, Mail, MapPin, Phone } from 'lucide-react'
 import { useMemo } from 'react'
 
 export default function Footer() {
   const year = useMemo(() => new Date().getFullYear(), [])
+  const socials = [
+    {
+      label: 'GitHub',
+      href: 'https://github.com/',
+      icon: Github,
+      style: 'border-slate-400/50 bg-slate-100 text-slate-800 hover:border-slate-500/40 hover:bg-slate-900 hover:text-white',
+    },
+    {
+      label: 'LinkedIn',
+      href: 'https://www.linkedin.com/',
+      icon: Linkedin,
+      style: 'border-sky-300/60 bg-sky-50 text-sky-800 hover:border-sky-500/40 hover:bg-sky-700 hover:text-white',
+    },
+    {
+      label: 'Instagram',
+      href: 'https://www.instagram.com/',
+      icon: Instagram,
+      style: 'border-pink-300/60 bg-pink-50 text-pink-800 hover:border-pink-500/40 hover:bg-gradient-to-r hover:from-fuchsia-600 hover:to-rose-500 hover:text-white',
+    },
+    {
+      label: 'Buy Me a Coffee',
+      href: 'https://www.buymeacoffee.com/',
+      icon: Coffee,
+      style: 'border-amber-300/60 bg-amber-50 text-amber-900 hover:border-amber-500/40 hover:bg-amber-400 hover:text-slate-900',
+    },
+  ]
 
   return (
     <footer className="mt-10 border-t border-base bg-surface/70">
@@ -45,8 +71,31 @@ export default function Footer() {
           </div>
         </div>
 
+        <div className="mt-7 rounded-2xl border border-base bg-surface p-4 shadow-[0_10px_24px_rgba(15,23,42,0.1)]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <p className="text-sm font-bold tracking-wide text-main">Connect With The Makers</p>
+            <div className="flex flex-wrap gap-2">
+              {socials.map((item) => {
+                const Icon = item.icon
+                return (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold shadow-sm transition duration-300 hover:-translate-y-0.5 ${item.style}`}
+                  >
+                    <Icon size={16} />
+                    {item.label}
+                  </a>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
         <div className="mt-7 border-t border-base pt-4 text-xs text-soft sm:text-sm">
-          <p>� {year} Renterz. All rights reserved.</p>
+          <p>© {year} Renterz. All rights reserved.</p>
           <p className="mt-1">Built for modern rent tracking and property operations.</p>
         </div>
       </div>

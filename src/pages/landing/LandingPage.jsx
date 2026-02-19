@@ -74,7 +74,7 @@ export default function LandingPage() {
         onPrev={() => goToSection(sections[(safeIndex - 1 + sections.length) % sections.length].id)}
         onNext={() => goToSection(sections[(safeIndex + 1) % sections.length].id)}
       />
-      <main className="landing-main-shell mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 pb-12 pt-2 md:gap-10 md:px-6">
+      <main className="landing-main-shell landing-ambient mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 pb-12 pt-2 md:gap-10 md:px-6">
         <div id="landing-hero" className="scroll-mt-24">
           <LandingHero />
         </div>

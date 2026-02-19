@@ -1,30 +1,36 @@
 import { useEffect, useRef } from 'react'
-import { Bookmark, Mail, MessageSquare } from 'lucide-react'
+import { Bookmark, Linkedin, Mail } from 'lucide-react'
+import seenivasanImage from '../../assets/Devteam/1757840241240.jpg'
 import akshayaImage from '../../assets/Devteam/Akshaya.jpeg'
 import anushaImage from '../../assets/Devteam/Anusha.jpeg'
+import prasanthImage from '../../assets/Devteam/Prasanth.jpeg'
 
 const developers = [
   {
     name: 'SEENIVASAN VENKATESAN',
-    email: 'seenivasan@renterz.dev',
-    image: 'https://ui-avatars.com/api/?name=Seenivasan+Venkatesan&background=0f766e&color=ffffff&size=256',
+    email: 'seenivasan.tech@gmail.com',
+    linkedin: 'https://www.linkedin.com/',
+    image: seenivasanImage,
     objectPosition: 'center 35%',
   },
   {
     name: 'PRASANTH KUMAR',
-    email: 'prasanth@renterz.dev',
-    image: 'https://ui-avatars.com/api/?name=Prasanth+Kumar&background=1d4ed8&color=ffffff&size=256',
+    email: 'prasanthkumar4151@gmail.com',
+    linkedin: 'https://www.linkedin.com/',
+    image: prasanthImage,
     objectPosition: 'center 35%',
   },
   {
     name: 'AKSHAYA RAJASEKARAN',
-    email: 'akshaya@renterz.dev',
+    email: 'akshaya.rajasekaran@gmail.com',
+    linkedin: 'https://www.linkedin.com/',
     image: akshayaImage,
     objectPosition: 'center 18%',
   },
   {
     name: 'ANUSHA H S',
-    email: 'anusha@renterz.dev',
+    email: 'anushahs2011@gmail.com',
+    linkedin: 'https://www.linkedin.com/',
     image: anushaImage,
     objectPosition: 'center 22%',
   },
@@ -54,7 +60,7 @@ export default function LandingDevelopers() {
 
   return (
     <section className="dev-team-section rounded-3xl border border-base bg-surface p-6 transition-shadow duration-300 hover:shadow-md md:p-8">
-      <h3 className="text-2xl font-bold">Developer Team</h3>
+      <h3 className="text-2xl font-bold">Developer's</h3>
       <p className="mt-2 text-sm text-soft">Contact points for implementation, API onboarding, and UI customization.</p>
       <div className="dev-team-grid mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {developers.map((dev, index) => (
@@ -88,18 +94,20 @@ export default function LandingDevelopers() {
                 <div className="mt-4 flex items-center gap-2">
                   <a
                     href={`mailto:${dev.email}`}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/15 bg-[var(--primary)] py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--primary-hover)]"
+                    className="dev-mail-cta inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/15 bg-[var(--primary)] py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--primary-hover)]"
                   >
                     <Mail size={14} />
                     Get In Touch
                   </a>
-                  <button
-                    type="button"
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-[var(--primary)]/85 text-white backdrop-blur-sm transition hover:bg-[var(--primary-hover)]"
-                    aria-label={`Message ${dev.name}`}
+                  <a
+                    href={dev.linkedin}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="dev-linkedin-cta inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-[#0a66c2]/85 text-white backdrop-blur-sm transition hover:bg-[#0a66c2]"
+                    aria-label={`${dev.name} LinkedIn`}
                   >
-                    <MessageSquare size={16} />
-                  </button>
+                    <Linkedin size={16} />
+                  </a>
                 </div>
               </div>
             </div>
