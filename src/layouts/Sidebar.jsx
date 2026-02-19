@@ -242,7 +242,7 @@ export default function Sidebar({ role, open, onClose }) {
           <div className="flex items-center gap-3">
             <img src={logo} alt="Renterz logo" className="h-11 w-11 rounded-xl border border-base object-cover" />
             <div>
-              <h2 className="text-xl font-bold text-main">Renterz SaaS</h2>
+              <h2 className="text-xl font-bold text-main">Renterz Paizza</h2>
               <p className="mt-1 text-xs text-soft">Property Management</p>
             </div>
           </div>

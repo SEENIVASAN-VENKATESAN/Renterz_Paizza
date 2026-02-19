@@ -63,6 +63,9 @@ export default function LoginPage() {
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+          <div className="mt-2 text-right">
+            <Link className="text-xs font-semibold text-[var(--primary)]" to="/forgot-password">Forgot password?</Link>
+          </div>
         </FormField>
 
         <Button className="w-full" type="submit" disabled={!isValid || loading}>
@@ -71,7 +74,7 @@ export default function LoginPage() {
       </form>
 
       <p className="mt-4 text-sm text-soft">
-        New account? <Link className="font-semibold text-teal-700" to="/register">Create one</Link>
+        New account? <Link className="font-semibold text-[var(--primary)]" to="/register">Create one</Link>
       </p>
     </div>
   )

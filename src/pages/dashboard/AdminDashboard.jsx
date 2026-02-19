@@ -143,7 +143,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => setOpenAddUserModal(true)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-base bg-teal-600 text-white transition hover:bg-teal-700"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-base bg-[var(--primary)] text-white transition hover:bg-[var(--primary-hover)]"
               aria-label="Add user"
             >
               <Plus size={16} />
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
               {showAddUserPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-          <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">
+          <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--primary-hover)]">
             <Plus size={15} /> Add User
           </button>
         </form>

@@ -49,7 +49,7 @@ export default function TopNavbar({ onToggleSidebar, darkMode, onToggleTheme, cu
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-base bg-surface px-4 md:px-6">
+    <header className="app-topbar sticky top-0 z-30 flex h-16 items-center justify-between border-b border-base bg-surface px-4 md:px-6">
       <div className="flex items-center gap-3">
         {showSidebarToggle ? (
           <button type="button" className="rounded-lg p-2 hover-surface-soft lg:hidden" onClick={onToggleSidebar}>

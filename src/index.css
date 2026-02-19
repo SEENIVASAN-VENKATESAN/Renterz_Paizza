@@ -8,8 +8,9 @@
   --text: #0f172a;
   --text-soft: #475569;
   --border: #dbe4ee;
-  --primary: #0f766e;
-  --primary-soft: #d1fae5;
+  --primary: #0f3f84;
+  --primary-hover: #0b3065;
+  --primary-soft: #dbeafe;
   --danger: #dc2626;
   --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   --texture-a: rgba(20, 184, 166, 0.06);
@@ -23,8 +24,9 @@
   --text: #eef1fb;
   --text-soft: #aab2ca;
   --border: rgba(255, 255, 255, 0.12);
-  --primary: #8f7be8;
-  --primary-soft: rgba(143, 123, 232, 0.24);
+  --primary: #356dcd;
+  --primary-hover: #2859ad;
+  --primary-soft: rgba(110, 168, 255, 0.26);
   --danger: #ef4444;
   --shadow: 0 18px 48px rgba(0, 0, 0, 0.46);
   --texture-a: rgba(255, 255, 255, 0.05);
@@ -62,6 +64,19 @@ body {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes heroRevealIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
   }
 }
 
@@ -110,6 +125,28 @@ body {
 .developer-card-reveal.is-visible {
   animation: developerCardIn 520ms ease-out both;
   animation-delay: var(--reveal-delay, 0ms);
+}
+
+.hero-reveal {
+  opacity: 0;
+  animation: heroRevealIn 520ms ease-out both;
+  animation-delay: var(--hero-delay, 0ms);
+}
+
+.hero-reveal-1 {
+  --hero-delay: 70ms;
+}
+
+.hero-reveal-2 {
+  --hero-delay: 140ms;
+}
+
+.hero-reveal-3 {
+  --hero-delay: 220ms;
+}
+
+.hero-reveal-4 {
+  --hero-delay: 300ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -195,11 +232,15 @@ textarea {
 }
 
 .auth-input {
-  background-color: #ffffff;
+  background-color: var(--surface);
 }
 
 .auth-input::placeholder {
   color: color-mix(in srgb, var(--text-soft) 58%, transparent);
+}
+
+.register-form .auth-input:focus::placeholder {
+  color: transparent;
 }
 
 .hover-surface-soft:hover {
@@ -318,14 +359,14 @@ textarea {
 .workbench-theme .bg-teal-600,
 .workbench-theme .bg-cyan-500,
 .workbench-theme .bg-emerald-500 {
-  background-color: #0f766e !important;
+  background-color: #0f3f84 !important;
   color: #ffffff !important;
 }
 
 .workbench-theme .hover\:bg-teal-700:hover,
 .workbench-theme .hover\:bg-cyan-700:hover,
 .workbench-theme .hover\:bg-emerald-700:hover {
-  background-color: #0d5f59 !important;
+  background-color: #0b3065 !important;
 }
 
 .dark .workbench-theme {
@@ -491,6 +532,76 @@ textarea {
   border-color: rgba(255, 255, 255, 0.15) !important;
   background: rgba(255, 255, 255, 0.1) !important;
   color: #d4d9f1;
+}
+
+.auth-page-bg {
+  background:
+    radial-gradient(circle at 10% 12%, rgba(116, 159, 255, 0.24), transparent 34%),
+    radial-gradient(circle at 86% 18%, rgba(56, 123, 255, 0.2), transparent 36%),
+    radial-gradient(circle at 72% 82%, rgba(115, 176, 255, 0.16), transparent 42%),
+    linear-gradient(145deg, #06193a 0%, #0a2450 44%, #10346d 100%);
+}
+
+.auth-brand-panel {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(178, 214, 255, 0.26), transparent 38%),
+    radial-gradient(circle at 82% 76%, rgba(108, 176, 255, 0.2), transparent 46%),
+    linear-gradient(154deg, rgba(11, 43, 93, 0.95) 0%, rgba(14, 63, 132, 0.92) 52%, rgba(18, 92, 183, 0.9) 100%);
+}
+
+.dark .dev-team-section {
+  background:
+    linear-gradient(160deg, rgba(24, 30, 44, 0.94), rgba(15, 20, 31, 0.9)),
+    radial-gradient(circle at 16% 18%, rgba(110, 168, 255, 0.08), transparent 36%),
+    radial-gradient(circle at 84% 76%, rgba(110, 168, 255, 0.05), transparent 42%);
+}
+
+.dark .dev-team-card {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 42px rgba(2, 6, 23, 0.45);
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .app-topbar {
+    height: 3.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .app-main {
+    padding: 1rem !important;
+    border-radius: 22px;
+  }
+
+  .auth-layout-shell {
+    padding: 1rem;
+  }
+
+  .auth-layout-card {
+    max-width: 58rem;
+  }
+
+  .auth-layout-brand {
+    padding: 1.25rem;
+  }
+
+  .auth-layout-form {
+    padding: 1.25rem;
+  }
+
+  .landing-main-shell {
+    max-width: 64rem;
+    padding-left: 14rem;
+    padding-right: 1.25rem;
+  }
+
+  .dev-team-grid {
+    gap: 0.9rem;
+  }
+
+  .dev-team-photo {
+    height: 300px;
+  }
 }
 
 @media (max-width: 1023px) {

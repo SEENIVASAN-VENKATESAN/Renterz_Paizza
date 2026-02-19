@@ -41,7 +41,7 @@ export default function RegisterPage() {
       <h2 className="text-2xl font-bold">Create your account</h2>
       <p className="mt-1 text-sm text-soft">Start managing properties, units, and rent workflows.</p>
 
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form className="mt-6 space-y-4 register-form" onSubmit={handleSubmit(onSubmit)}>
         <FormField label="Full Name" error={errors.fullName?.message}>
           <input {...register('fullName')} className="input-base auth-input" placeholder="Eg. Alex Morgan" />
         </FormField>
@@ -90,7 +90,7 @@ export default function RegisterPage() {
       </form>
 
       <p className="mt-4 text-sm text-soft">
-        Already have an account? <Link className="font-semibold text-teal-700" to="/login">Sign in</Link>
+        Already have an account? <Link className="font-semibold text-[var(--primary)]" to="/login">Sign in</Link>
       </p>
     </div>
   )

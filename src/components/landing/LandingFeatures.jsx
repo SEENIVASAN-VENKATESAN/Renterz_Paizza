@@ -26,7 +26,7 @@ const features = [
 
 export default function LandingFeatures() {
   return (
-    <section className="mt-6 rounded-3xl border border-base bg-surface p-6 md:p-8">
+    <section className="rounded-3xl border border-base bg-surface p-6 shadow-sm md:p-8">
       <h3 className="text-2xl font-bold">Features We Provide</h3>
       <p className="mt-2 text-sm text-soft">Examples of services we are going to provide in the Renterz platform.</p>
       <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

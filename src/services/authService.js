@@ -45,4 +45,20 @@ export const authService = {
       }
     }
   },
+
+  async requestPasswordReset(email) {
+    if (!useDemoAuth) {
+      const { data } = await api.post('/auth/forgot-password', { email })
+      return data
+    }
+
+    try {
+      const { data } = await api.post('/auth/forgot-password', { email })
+      return data
+    } catch {
+      return {
+        message: 'Password reset link sent',
+      }
+    }
+  },
 }

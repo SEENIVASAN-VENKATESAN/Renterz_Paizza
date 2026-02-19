@@ -29,7 +29,7 @@ export default function TenantDashboard() {
           <div><p className="text-soft">Due Date</p><p className="font-semibold">{formatDate(data.unit.dueDate)}</p></div>
         </div>
         <div className="mt-5 flex flex-wrap gap-2">
-          <button type="button" className="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white">Pay Now</button>
+          <button type="button" className="rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--primary-hover)]">Pay Now</button>
           <button type="button" className="rounded-xl border border-base px-4 py-2 text-sm font-semibold">Raise Complaint</button>
         </div>
       </Card>

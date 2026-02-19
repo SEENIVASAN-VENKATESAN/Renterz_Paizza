@@ -1,26 +1,32 @@
 import { useEffect, useRef } from 'react'
 import { Bookmark, Mail, MessageSquare } from 'lucide-react'
+import akshayaImage from '../../assets/Devteam/Akshaya.jpeg'
+import anushaImage from '../../assets/Devteam/Anusha.jpeg'
 
 const developers = [
   {
     name: 'SEENIVASAN VENKATESAN',
     email: 'seenivasan@renterz.dev',
     image: 'https://ui-avatars.com/api/?name=Seenivasan+Venkatesan&background=0f766e&color=ffffff&size=256',
+    objectPosition: 'center 35%',
   },
   {
     name: 'PRASANTH KUMAR',
     email: 'prasanth@renterz.dev',
     image: 'https://ui-avatars.com/api/?name=Prasanth+Kumar&background=1d4ed8&color=ffffff&size=256',
+    objectPosition: 'center 35%',
   },
   {
-    name: 'AKSHAYA RAJASEKAR',
+    name: 'AKSHAYA RAJASEKARAN',
     email: 'akshaya@renterz.dev',
-    image: 'https://ui-avatars.com/api/?name=Akshaya+Rajasekar&background=7c3aed&color=ffffff&size=256',
+    image: akshayaImage,
+    objectPosition: 'center 18%',
   },
   {
-    name: 'ANUSHA',
+    name: 'ANUSHA H S',
     email: 'anusha@renterz.dev',
-    image: 'https://ui-avatars.com/api/?name=Anusha&background=be123c&color=ffffff&size=256',
+    image: anushaImage,
+    objectPosition: 'center 22%',
   },
 ]
 
@@ -47,24 +53,25 @@ export default function LandingDevelopers() {
   }, [])
 
   return (
-    <section className="mt-6">
+    <section className="dev-team-section rounded-3xl border border-base bg-surface p-6 transition-shadow duration-300 hover:shadow-md md:p-8">
       <h3 className="text-2xl font-bold">Developer Team</h3>
       <p className="mt-2 text-sm text-soft">Contact points for implementation, API onboarding, and UI customization.</p>
-      <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="dev-team-grid mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {developers.map((dev, index) => (
           <article
             key={dev.name}
             ref={(el) => {
               cardRefs.current[index] = el
             }}
-            className="developer-card-reveal group relative overflow-hidden rounded-[24px] border border-base bg-transparent shadow-[0_24px_60px_rgba(15,23,42,0.12)] transition duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(15,23,42,0.2)]"
+            className="dev-team-card developer-card-reveal group relative overflow-hidden rounded-[24px] border border-base bg-transparent shadow-[0_24px_60px_rgba(15,23,42,0.12)] transition duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(15,23,42,0.2)]"
             style={{ '--reveal-delay': `${index * 90}ms` }}
           >
             <div className="relative overflow-hidden rounded-[24px]">
               <img
                 src={dev.image}
                 alt={dev.name}
-                className="h-[360px] w-full object-cover transition duration-500 ease-out group-hover:scale-105"
+                className="dev-team-photo h-[360px] w-full object-cover transition duration-500 ease-out group-hover:scale-105"
+                style={{ objectPosition: dev.objectPosition || 'center 24%' }}
                 loading="lazy"
               />
 
@@ -81,14 +88,14 @@ export default function LandingDevelopers() {
                 <div className="mt-4 flex items-center gap-2">
                   <a
                     href={`mailto:${dev.email}`}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/15 bg-[var(--primary)] py-2.5 text-sm font-semibold text-white transition hover:bg-[#7160b8]"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-white/15 bg-[var(--primary)] py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--primary-hover)]"
                   >
                     <Mail size={14} />
                     Get In Touch
                   </a>
                   <button
                     type="button"
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[var(--primary-soft)] text-white backdrop-blur-sm transition hover:bg-[var(--primary)]"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-[var(--primary)]/85 text-white backdrop-blur-sm transition hover:bg-[var(--primary-hover)]"
                     aria-label={`Message ${dev.name}`}
                   >
                     <MessageSquare size={16} />

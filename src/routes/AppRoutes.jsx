@@ -3,6 +3,7 @@ import { ALL_ROLES, ROLES } from '../constants/roles'
 import AppLayout from '../layouts/AppLayout'
 import AuthLayout from '../layouts/AuthLayout'
 import LandingLayout from '../layouts/LandingLayout'
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage'
 import LoginPage from '../pages/auth/LoginPage'
 import RegisterPage from '../pages/auth/RegisterPage'
 import CommunicationPage from '../pages/communication/CommunicationPage'
@@ -40,6 +41,7 @@ export default function AppRoutes() {
       <Route element={<PublicRoute />}>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/register" element={<RegisterPage />} />
         </Route>
       </Route>

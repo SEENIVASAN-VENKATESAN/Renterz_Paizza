@@ -15,3 +15,7 @@ export const registerSchema = object({
   role: string().required('Role is required').oneOf(REGISTRATION_ROLES, 'Invalid role selected'),
   password: string().required('Password is required').min(8, 'Minimum 8 characters'),
 })
+
+export const forgotPasswordSchema = object({
+  email: string().required('Email is required').email('Enter a valid email'),
+})

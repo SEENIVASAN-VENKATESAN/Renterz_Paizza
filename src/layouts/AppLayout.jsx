@@ -11,12 +11,11 @@ export default function AppLayout() {
   const { user } = useAuth()
   const isAdmin = user?.role === ROLES.ADMIN
   const [open, setOpen] = useState(false)
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('rp_dark_mode') === 'true')
+  const [darkMode, setDarkMode] = useState(false)
   const [currency, setCurrency] = useState(() => localStorage.getItem('rp_currency') || 'USD')
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
-    localStorage.setItem('rp_dark_mode', darkMode)
   }, [darkMode])
 
   useEffect(() => {
@@ -35,7 +34,7 @@ export default function AppLayout() {
           onChangeCurrency={setCurrency}
           currencyOptions={CURRENCY_OPTIONS}
         />
-        <main className="workbench-theme p-4 md:p-6">
+        <main className="app-main workbench-theme p-4 md:p-6">
           <Outlet />
         </main>
       </div>

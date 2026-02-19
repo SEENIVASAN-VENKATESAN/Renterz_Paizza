@@ -7,19 +7,21 @@ export default function LandingHeader() {
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 md:px-6">
       <div className="flex items-center gap-3">
-        <img src={logo} alt="Renterz logo" className="h-10 w-10 rounded-xl border border-base object-cover" />
-        <div>
-          <h1 className="text-xl font-bold">Renterz SaaS</h1>
+        <img src={logo} alt="Renterz logo" className="h-14 w-14 rounded-xl border border-base object-cover sm:h-16 sm:w-16" />
+        <div className="hidden sm:block">
+          <h1 className="text-xl font-bold">Renterz Paizza</h1>
           <p className="text-xs text-soft">Rent Tracking and Property Management</p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <Link to="/login">
-          <Button variant="secondary">Sign In</Button>
+          <Button variant="secondary" className="whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">Sign In</Button>
         </Link>
         <Link to="/register">
-          <Button>
-            Get Started <ArrowRight size={14} className="ml-1" />
+          <Button className="whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">
+            <span className="sm:hidden">Start</span>
+            <span className="hidden sm:inline">Get Started</span>
+            <ArrowRight size={14} className="ml-1" />
           </Button>
         </Link>
       </div>
