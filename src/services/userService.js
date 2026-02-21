@@ -4,47 +4,79 @@ import { USERS_KEY } from '../constants/app'
 const defaultUsers = [
   {
     id: 1,
-    fullName: 'Admin User',
-    email: 'admin@renterz.com',
+    fullName: 'Super Admin',
+    email: 'superadmin@renterz.com',
     mobile: '9876543210',
-    role: ROLES.ADMIN,
+    role: ROLES.SUPER_ADMIN,
     password: 'password123',
+    buildingId: null,
   },
   {
     id: 2,
-    fullName: 'Owner User',
-    email: 'owner@renterz.com',
+    fullName: 'Building Admin',
+    email: 'buildingadmin@renterz.com',
     mobile: '9876543211',
-    role: ROLES.OWNER,
+    role: ROLES.BUILDING_ADMIN,
     password: 'password123',
+    buildingId: 101,
   },
   {
     id: 3,
+    fullName: 'Owner User',
+    email: 'owner@renterz.com',
+    mobile: '9876543212',
+    role: ROLES.OWNER,
+    password: 'password123',
+    buildingId: 101,
+  },
+  {
+    id: 4,
     fullName: 'Tenant User',
     email: 'tenant@renterz.com',
-    mobile: '9876543212',
+    mobile: '9876543213',
     role: ROLES.TENANT,
     password: 'password123',
+    buildingId: 101,
   },
 ]
+
+function ensureBaseUsers(users) {
+  const byEmail = new Map(users.map((item) => [String(item.email || '').toLowerCase(), item]))
+  let changed = false
+
+  defaultUsers.forEach((seed) => {
+    const key = seed.email.toLowerCase()
+    if (!byEmail.has(key)) {
+      users.push({ ...seed, source: 'SYSTEM_DEFAULT' })
+      changed = true
+    }
+  })
+
+  return { users, changed }
+}
 
 function readUsers() {
   const raw = localStorage.getItem(USERS_KEY)
   if (!raw) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers))
-    return [...defaultUsers]
+    const seeded = defaultUsers.map((item) => ({ ...item, source: 'SYSTEM_DEFAULT' }))
+    localStorage.setItem(USERS_KEY, JSON.stringify(seeded))
+    return seeded
   }
 
   try {
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers))
-      return [...defaultUsers]
+      const seeded = defaultUsers.map((item) => ({ ...item, source: 'SYSTEM_DEFAULT' }))
+      localStorage.setItem(USERS_KEY, JSON.stringify(seeded))
+      return seeded
     }
-    return parsed
+    const { users, changed } = ensureBaseUsers(parsed)
+    if (changed) localStorage.setItem(USERS_KEY, JSON.stringify(users))
+    return users
   } catch {
-    localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers))
-    return [...defaultUsers]
+    const seeded = defaultUsers.map((item) => ({ ...item, source: 'SYSTEM_DEFAULT' }))
+    localStorage.setItem(USERS_KEY, JSON.stringify(seeded))
+    return seeded
   }
 }
 
@@ -53,7 +85,8 @@ function writeUsers(users) {
 }
 
 function sanitizeUser(user) {
-  const { password, ...safeUser } = user
+  const safeUser = { ...user }
+  delete safeUser.password
   return safeUser
 }
 
@@ -86,6 +119,13 @@ export const userService = {
       mobile,
       role: payload.role,
       password: payload.password,
+      buildingId: payload.buildingId ?? null,
+      age: payload.age ?? null,
+      documentType: payload.documentType || '',
+      documentNumber: payload.documentNumber || '',
+      photo: payload.photo || '',
+      documentFile: payload.documentFile || '',
+      source: payload.source || 'ADMIN_MANUAL',
     }
 
     const nextUsers = [...users, nextUser]
@@ -98,5 +138,67 @@ export const userService = {
     const nextUsers = users.filter((item) => item.id !== id)
     writeUsers(nextUsers)
     return nextUsers.map(sanitizeUser)
+  },
+
+  findByEmail(email) {
+    const normalized = String(email || '').trim().toLowerCase()
+    if (!normalized) return null
+    const user = readUsers().find((item) => item.email.toLowerCase() === normalized)
+    return user ? sanitizeUser(user) : null
+  },
+
+  resetPassword(id, nextPassword) {
+    const users = readUsers()
+    const updated = users.map((item) => (item.id === id ? { ...item, password: nextPassword } : item))
+    writeUsers(updated)
+    const target = updated.find((item) => item.id === id)
+    return target ? sanitizeUser(target) : null
+  },
+
+  updateProfileById(id, payload) {
+    const users = readUsers()
+    const target = users.find((item) => item.id === id)
+    if (!target) throw new Error('User not found')
+
+    const nextEmail = String(payload.email || '').trim().toLowerCase()
+    const nextMobile = String(payload.mobile || '').trim()
+
+    if (!nextEmail) throw new Error('Email is required')
+    const emailInUse = users.some((item) => item.id !== id && item.email.toLowerCase() === nextEmail)
+    if (emailInUse) throw new Error('Email already used')
+
+    if (nextMobile) {
+      const mobileInUse = users.some((item) => item.id !== id && String(item.mobile || '').trim() === nextMobile)
+      if (mobileInUse) throw new Error('Mobile already used')
+    }
+
+    const updatedUsers = users.map((item) => (
+      item.id === id
+        ? {
+            ...item,
+            fullName: String(payload.fullName || item.fullName).trim(),
+            email: nextEmail,
+            mobile: nextMobile,
+          }
+        : item
+    ))
+    writeUsers(updatedUsers)
+    const next = updatedUsers.find((item) => item.id === id)
+    return next ? sanitizeUser(next) : null
+  },
+
+  changePasswordById(id, currentPassword, nextPassword) {
+    const users = readUsers()
+    const target = users.find((item) => item.id === id)
+    if (!target) throw new Error('User not found')
+    if (target.password !== currentPassword) throw new Error('Current password is incorrect')
+    if (!nextPassword || String(nextPassword).length < 8) throw new Error('New password must be at least 8 characters')
+
+    const updatedUsers = users.map((item) => (
+      item.id === id ? { ...item, password: String(nextPassword) } : item
+    ))
+    writeUsers(updatedUsers)
+    const next = updatedUsers.find((item) => item.id === id)
+    return next ? sanitizeUser(next) : null
   },
 }

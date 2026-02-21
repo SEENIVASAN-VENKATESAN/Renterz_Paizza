@@ -8,6 +8,29 @@ export function parseJwt(token) {
   }
 }
 
+function normalizeRole(rawRole) {
+  const role = String(rawRole || '').trim().toUpperCase()
+  if (!role) return ''
+  if (role === 'ADMIN') return 'BUILDING_ADMIN'
+  if (role === 'SUPERADMIN') return 'SUPER_ADMIN'
+  if (role === 'BUILDINGADMIN') return 'BUILDING_ADMIN'
+  return role
+}
+
+export function buildSessionUser(token, fallbackUser = null) {
+  const payload = parseJwt(token)
+  const role = normalizeRole(payload?.role || fallbackUser?.role)
+  if (!role) return null
+  return {
+    id: payload?.userId ?? payload?.user_id ?? fallbackUser?.id ?? null,
+    email: payload?.email ?? payload?.sub ?? fallbackUser?.email ?? '',
+    fullName: fallbackUser?.fullName || payload.name || 'User',
+    role,
+    buildingId: payload?.buildingId ?? payload?.building_id ?? fallbackUser?.buildingId ?? null,
+    buildingName: payload?.buildingName ?? payload?.building_name ?? fallbackUser?.buildingName ?? '',
+  }
+}
+
 export function isTokenExpired(token) {
   const payload = parseJwt(token)
   if (!payload?.exp) {

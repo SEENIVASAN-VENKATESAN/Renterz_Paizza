@@ -44,19 +44,11 @@ export const dashboardByRole = {
   },
 }
 
-export const propertiesSeed = [
-  { id: 1, name: 'Skyline Heights', city: 'New York', type: 'Apartment', status: 'ACTIVE', units: 64 },
-  { id: 2, name: 'Palm Crest Residency', city: 'Miami', type: 'Building', status: 'ACTIVE', units: 32 },
-  { id: 3, name: 'Maple Business Hub', city: 'Chicago', type: 'PG', status: 'INACTIVE', units: 18 },
-  { id: 4, name: 'Rivera Studio Park', city: 'Austin', type: 'Apartment', status: 'ACTIVE', units: 40 },
-]
+export const propertiesSeed = []
 
-export const unitsSeed = [
-  { id: 1, unitNo: 'A-101', property: 'Skyline Heights', owner: 'Ava Brooks', floor: 1, status: 'AVAILABLE' },
-  { id: 2, unitNo: 'A-303', property: 'Palm Crest Residency', owner: 'Noah Blake', floor: 3, status: 'OCCUPIED' },
-  { id: 3, unitNo: 'C-109', property: 'Maple Business Hub', owner: 'Liam Ray', floor: 1, status: 'INACTIVE' },
-  { id: 4, unitNo: 'D-411', property: 'Rivera Studio Park', owner: 'Olivia Stone', floor: 4, status: 'AVAILABLE' },
-]
+export const unitsSeed = []
+
+export const unitAllocationsSeed = []
 
 export const rentsSeed = [
   { id: 1, tenant: 'Mia Johnson', unit: 'A-303', dueDate: '2026-02-05', amount: 1800, status: 'PAID' },
@@ -80,15 +72,15 @@ export const paymentsSeed = [
 ]
 
 export const maintenanceSeed = [
-  { id: 1, unit: 'A-303', issue: 'Water leakage', dueDate: '2026-02-21', status: 'IN_PROGRESS', paid: false },
-  { id: 2, unit: 'A-101', issue: 'Lift servicing', dueDate: '2026-02-24', status: 'OPEN', paid: false },
-  { id: 3, unit: 'D-411', issue: 'HVAC tune-up', dueDate: '2026-02-16', status: 'CLOSED', paid: true },
+  { id: 1, unitId: 2, unit: 'A-303', issue: 'Water leakage', dueDate: '2026-02-21', status: 'IN_PROGRESS', paid: false, amount: 280, billMonth: '2026-02' },
+  { id: 2, unitId: 1, unit: 'A-101', issue: 'Lift servicing', dueDate: '2026-02-24', status: 'OPEN', paid: false, amount: 190, billMonth: '2026-02' },
+  { id: 3, unitId: 4, unit: 'D-411', issue: 'HVAC tune-up', dueDate: '2026-02-16', status: 'CLOSED', paid: true, amount: 320, billMonth: '2026-02' },
 ]
 
 export const complaintSeed = [
-  { id: 9001, title: 'Power outage in corridor', description: 'Second floor lights are off nightly.', status: 'OPEN', createdAt: '2026-02-12T10:20:00Z' },
-  { id: 9002, title: 'Noise complaint', description: 'Late-night noise from adjacent unit.', status: 'IN_PROGRESS', createdAt: '2026-02-13T08:40:00Z' },
-  { id: 9003, title: 'Parking slot blocked', description: 'Unauthorized vehicle in slot A-15.', status: 'CLOSED', createdAt: '2026-02-15T09:30:00Z' },
+  { id: 9001, unitId: 2, title: 'Power outage in corridor', description: 'Second floor lights are off nightly.', status: 'OPEN', createdAt: '2026-02-12T10:20:00Z', createdByUserId: 2 },
+  { id: 9002, unitId: 1, title: 'Noise complaint', description: 'Late-night noise from adjacent unit.', status: 'IN_PROGRESS', createdAt: '2026-02-13T08:40:00Z' },
+  { id: 9003, unitId: 4, title: 'Parking slot blocked', description: 'Unauthorized vehicle in slot A-15.', status: 'CLOSED', createdAt: '2026-02-15T09:30:00Z', createdByUserId: 2 },
 ]
 
 export const damageReportsSeed = [

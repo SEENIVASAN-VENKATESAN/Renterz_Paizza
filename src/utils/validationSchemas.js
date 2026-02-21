@@ -1,5 +1,4 @@
 import { object, ref, string } from 'yup'
-import { REGISTRATION_ROLES } from '../constants/roles'
 
 export const loginSchema = object({
   email: string().required('Email is required').email('Enter a valid email'),
@@ -8,11 +7,12 @@ export const loginSchema = object({
 
 export const registerSchema = object({
   fullName: string().required('Full name is required'),
+  buildingName: string().required('Building name is required'),
   email: string().required('Email is required').email('Enter a valid email'),
+  countryIso: string().required('Country code is required'),
   mobile: string()
     .required('Mobile number is required')
-    .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number'),
-  role: string().required('Role is required').oneOf(REGISTRATION_ROLES, 'Invalid role selected'),
+    .matches(/^\d{6,15}$/, 'Enter a valid mobile number'),
   password: string().required('Password is required').min(8, 'Minimum 8 characters'),
   confirmPassword: string()
     .required('Confirm password is required')

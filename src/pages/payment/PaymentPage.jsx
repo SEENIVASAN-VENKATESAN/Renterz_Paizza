@@ -1,27 +1,19 @@
 import { useMemo, useState } from 'react'
 import Button from '../../components/ui/Button'
+import Card from '../../components/ui/Card'
 import Modal from '../../components/ui/Modal'
 import Skeleton from '../../components/ui/Skeleton'
 import StatusBadge from '../../components/ui/StatusBadge'
 import Table from '../../components/ui/Table'
-import { PAYMENTS_KEY } from '../../constants/app'
+import { useAuth } from '../../hooks/useAuth'
 import { usePageLoading } from '../../hooks/usePageLoading'
-import { paymentsSeed } from '../../services/mockData'
+import { paymentService } from '../../services/paymentService'
 import { formatCurrency, formatDate } from '../../utils/formatters'
-
-function readPayments() {
-  try {
-    const raw = localStorage.getItem(PAYMENTS_KEY)
-    const parsed = raw ? JSON.parse(raw) : paymentsSeed
-    return Array.isArray(parsed) ? parsed : paymentsSeed
-  } catch {
-    return paymentsSeed
-  }
-}
 
 export default function PaymentPage() {
   const loading = usePageLoading(350)
-  const [payments] = useState(readPayments)
+  const { user } = useAuth()
+  const payments = useMemo(() => paymentService.listPaymentsForUser(user), [user])
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [dateFilter, setDateFilter] = useState('')
   const [selected, setSelected] = useState(null)
@@ -34,6 +26,12 @@ export default function PaymentPage() {
     }),
     [payments, statusFilter, dateFilter]
   )
+  const statusSummary = useMemo(() => ({
+    total: filtered.length,
+    success: filtered.filter((item) => item.status === 'SUCCESS').length,
+    pending: filtered.filter((item) => item.status === 'PENDING').length,
+    failed: filtered.filter((item) => item.status === 'FAILED').length,
+  }), [filtered])
 
   const downloadReceipt = (payment) => {
     const content = `Receipt #${payment.id}\nTenant: ${payment.tenant}\nAmount: ${formatCurrency(payment.amount)}\nDate: ${payment.date}\nStatus: ${payment.status}`
@@ -65,12 +63,20 @@ export default function PaymentPage() {
 
   return (
     <div className="space-y-4">
-      <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
         <h2 className="text-2xl font-bold">Payments</h2>
         <p className="text-sm text-soft">Transaction monitoring with receipt download support.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">Total: {statusSummary.total}</span>
+          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">Success: {statusSummary.success}</span>
+          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-amber-700">Pending: {statusSummary.pending}</span>
+          <span className="rounded-full bg-rose-100 px-2.5 py-1 text-rose-700">Failed: {statusSummary.failed}</span>
+        </div>
       </div>
 
-      <div className="card grid gap-3 p-4 md:grid-cols-2">
+      <Card className="grid gap-3 p-4 md:grid-cols-2">
         <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="input-base" />
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="input-base">
           <option value="ALL">ALL</option>
@@ -78,9 +84,9 @@ export default function PaymentPage() {
           <option value="FAILED">FAILED</option>
           <option value="PENDING">PENDING</option>
         </select>
-      </div>
+      </Card>
 
-      {loading ? <Skeleton className="h-72" /> : <Table columns={columns} data={filtered} />}
+      {loading ? <Skeleton className="h-72" /> : <Table columns={columns} data={filtered} emptyText="No payments found for this filter." />}
 
       <Modal open={Boolean(selected)} title="Payment Details" onClose={() => setSelected(null)}>
         {selected ? (

@@ -13,7 +13,12 @@ import { Moon, Sun } from 'lucide-react'
 
 export default function LandingPage() {
   const { isAuthenticated } = useAuth()
-  const [darkMode, setDarkMode] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('rp_dark_mode')
+    if (saved === 'true') return true
+    if (saved === 'false') return false
+    return document.documentElement.classList.contains('dark')
+  })
   const sections = useMemo(
     () => [
       { id: 'landing-hero', label: 'Hero' },
@@ -28,6 +33,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
+    localStorage.setItem('rp_dark_mode', String(darkMode))
   }, [darkMode])
 
   useEffect(() => {

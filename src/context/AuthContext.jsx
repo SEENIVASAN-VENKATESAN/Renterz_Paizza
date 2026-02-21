@@ -1,21 +1,41 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { authService } from '../services/authService'
+import { ROLES } from '../constants/roles'
 import { setUnauthorizedHandler } from '../services/api'
 import { TOKEN_KEY, USER_KEY } from '../constants/app'
-import { isTokenExpired, parseJwt } from '../utils/jwt'
+import { buildSessionUser, isTokenExpired, parseJwt } from '../utils/jwt'
 import { AuthContext } from './authContextInstance'
+import { presenceService } from '../services/presenceService'
+
+function readStoredToken() {
+  return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY)
+}
+
+function readStoredUser() {
+  const raw = sessionStorage.getItem(USER_KEY) || localStorage.getItem(USER_KEY)
+  return raw ? JSON.parse(raw) : null
+}
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY))
+  const [token, setToken] = useState(() => readStoredToken())
   const [user, setUser] = useState(() => {
-    const raw = localStorage.getItem(USER_KEY)
-    return raw ? JSON.parse(raw) : null
+    const tokenFromStorage = readStoredToken()
+    if (!tokenFromStorage || isTokenExpired(tokenFromStorage)) return null
+    try {
+      const saved = readStoredUser()
+      return buildSessionUser(tokenFromStorage, saved)
+    } catch {
+      return buildSessionUser(tokenFromStorage, null)
+    }
   })
   const [loading, setLoading] = useState(false)
 
   const logout = useCallback(() => {
+    presenceService.stop()
     setToken(null)
     setUser(null)
+    sessionStorage.removeItem(TOKEN_KEY)
+    sessionStorage.removeItem(USER_KEY)
     localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(USER_KEY)
   }, [])
@@ -44,19 +64,73 @@ export function AuthProvider({ children }) {
     return () => clearTimeout(timer)
   }, [token, logout])
 
+  useEffect(() => {
+    if (!token) return
+    let cancelled = false
+
+    const syncProfile = async () => {
+      try {
+        const me = await authService.me()
+        if (cancelled || !me) return
+        const payloadUser = buildSessionUser(token, me)
+        if (!payloadUser) return
+        const mergedUser = {
+          ...payloadUser,
+          fullName: me.fullName || payloadUser.fullName,
+          email: me.email || payloadUser.email,
+          buildingStatus: me.buildingStatus || null,
+          buildingName: me.buildingName || payloadUser.buildingName || '',
+        }
+        if (mergedUser.role !== ROLES.SUPER_ADMIN && mergedUser.buildingStatus && mergedUser.buildingStatus !== 'ACTIVE') {
+          logout()
+          return
+        }
+        setUser(mergedUser)
+        sessionStorage.setItem(USER_KEY, JSON.stringify(mergedUser))
+      } catch (error) {
+        if (error?.response?.status === 401 || error?.response?.status === 403) {
+          logout()
+        }
+      }
+    }
+
+    syncProfile()
+    return () => {
+      cancelled = true
+    }
+  }, [token, logout])
+
+  useEffect(() => {
+    if (!token || !user) {
+      presenceService.stop()
+      return undefined
+    }
+
+    presenceService.start(user)
+    return () => presenceService.stop()
+  }, [token, user])
+
   const persistSession = useCallback((sessionToken, sessionUser) => {
+    const jwtUser = buildSessionUser(sessionToken, sessionUser)
+    if (!jwtUser) {
+      throw new Error('Invalid token payload. Missing role claim.')
+    }
     setToken(sessionToken)
-    setUser(sessionUser)
-    localStorage.setItem(TOKEN_KEY, sessionToken)
-    localStorage.setItem(USER_KEY, JSON.stringify(sessionUser))
+    setUser(jwtUser)
+    sessionStorage.setItem(TOKEN_KEY, sessionToken)
+    sessionStorage.setItem(USER_KEY, JSON.stringify(jwtUser))
+    // Migration cleanup for older storage behavior.
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(USER_KEY)
+    return jwtUser
   }, [])
 
   const login = useCallback(async (payload) => {
     setLoading(true)
     try {
       const response = await authService.login(payload)
-      persistSession(response.token, response.user)
-      return response
+      const sessionUser = persistSession(response.token, response.user)
+      return { ...response, user: sessionUser }
     } finally {
       setLoading(false)
     }
@@ -66,8 +140,8 @@ export function AuthProvider({ children }) {
     setLoading(true)
     try {
       const response = await authService.register(payload)
-      persistSession(response.token, response.user)
-      return response
+      const sessionUser = persistSession(response.token, response.user)
+      return { ...response, user: sessionUser }
     } finally {
       setLoading(false)
     }
@@ -82,6 +156,10 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      setSessionUser: (nextUser) => {
+        setUser(nextUser)
+        sessionStorage.setItem(USER_KEY, JSON.stringify(nextUser))
+      },
     }),
     [token, user, loading, login, register, logout]
   )

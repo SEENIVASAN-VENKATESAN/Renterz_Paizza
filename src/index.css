@@ -378,7 +378,7 @@ textarea {
     var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
-  border-radius: 16px;
+  border-radius: 0;
 }
 
 .text-soft {
@@ -657,8 +657,102 @@ textarea {
   background-color: var(--surface-soft);
 }
 
+.bg-teal-50 {
+  background-color: color-mix(in srgb, var(--primary-soft) 82%, transparent);
+}
+
+.text-teal-700 {
+  color: var(--primary);
+}
+
+.bg-emerald-50 {
+  background-color: color-mix(in srgb, #34d399 18%, var(--surface));
+}
+
+.bg-emerald-100 {
+  background-color: color-mix(in srgb, #34d399 24%, var(--surface));
+}
+
+.text-emerald-700 {
+  color: color-mix(in srgb, #065f46 70%, var(--text));
+}
+
+.border-emerald-200,
+.border-emerald-300 {
+  border-color: color-mix(in srgb, #34d399 42%, var(--border));
+}
+
+.bg-rose-50 {
+  background-color: color-mix(in srgb, #fb7185 16%, var(--surface));
+}
+
+.bg-rose-100 {
+  background-color: color-mix(in srgb, #fb7185 24%, var(--surface));
+}
+
+.hover\:bg-rose-50:hover {
+  background-color: color-mix(in srgb, #fb7185 22%, var(--surface));
+}
+
+.text-rose-700 {
+  color: color-mix(in srgb, #be123c 68%, var(--text));
+}
+
+.border-rose-200,
+.border-rose-300 {
+  border-color: color-mix(in srgb, #fb7185 44%, var(--border));
+}
+
+.bg-amber-100 {
+  background-color: color-mix(in srgb, #f59e0b 24%, var(--surface));
+}
+
+.text-amber-700 {
+  color: color-mix(in srgb, #92400e 72%, var(--text));
+}
+
+.border-amber-200 {
+  border-color: color-mix(in srgb, #f59e0b 42%, var(--border));
+}
+
+.bg-indigo-100 {
+  background-color: color-mix(in srgb, #6366f1 24%, var(--surface));
+}
+
+.text-indigo-700 {
+  color: color-mix(in srgb, #3730a3 70%, var(--text));
+}
+
+.border-indigo-200 {
+  border-color: color-mix(in srgb, #6366f1 40%, var(--border));
+}
+
+.bg-sky-100 {
+  background-color: color-mix(in srgb, #38bdf8 24%, var(--surface));
+}
+
+.text-sky-700 {
+  color: color-mix(in srgb, #0369a1 68%, var(--text));
+}
+
+.border-sky-200 {
+  border-color: color-mix(in srgb, #38bdf8 40%, var(--border));
+}
+
+.bg-cyan-100 {
+  background-color: color-mix(in srgb, #22d3ee 24%, var(--surface));
+}
+
+.text-cyan-700 {
+  color: color-mix(in srgb, #0e7490 68%, var(--text));
+}
+
+.border-cyan-200 {
+  border-color: color-mix(in srgb, #22d3ee 40%, var(--border));
+}
+
 .workbench-theme {
-  border-radius: 28px;
+  border-radius: 0;
   background:
     radial-gradient(circle at 18% 16%, rgba(20, 184, 166, 0.06), transparent 34%),
     radial-gradient(circle at 80% 76%, rgba(15, 118, 110, 0.05), transparent 40%),
@@ -668,7 +762,7 @@ textarea {
 }
 
 .workbench-theme .card {
-  border-radius: 24px;
+  border-radius: 0;
   border-color: rgba(219, 228, 238, 0.9);
   background:
     radial-gradient(circle at 15% 10%, rgba(20, 184, 166, 0.04), transparent 38%),
@@ -859,25 +953,26 @@ textarea {
 
 .admin-dock-selected {
   position: relative;
-  transform: translateY(0) scale(1.16) !important;
-  border-color: rgba(143, 123, 232, 0.45) !important;
-  background: radial-gradient(circle at 30% 20%, #9d8df1, #6051c0 56%, #4b3da2) !important;
+  transform: translateY(0) scale(1.12) !important;
+  border-color: rgba(53, 109, 205, 0.45) !important;
+  background: radial-gradient(circle at 30% 20%, #6ea8ff, #356dcd 56%, #2859ad) !important;
   color: #fff !important;
-  box-shadow: 0 10px 24px rgba(70, 56, 136, 0.55) !important;
-  animation: dockActivePulse 1.9s ease-in-out infinite;
+  box-shadow: 0 8px 18px rgba(40, 89, 173, 0.42) !important;
   z-index: 3;
 }
 
 .admin-dock-item {
+  position: relative;
+  z-index: 1;
   color: #9ca4c8;
   transition:
-    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 220ms ease,
-    filter 220ms ease,
-    background-color 220ms ease,
-    border-color 220ms ease,
-    color 220ms ease,
-    box-shadow 240ms ease;
+    transform 110ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 100ms ease,
+    filter 100ms ease,
+    background-color 100ms ease,
+    border-color 100ms ease,
+    color 100ms ease,
+    box-shadow 120ms ease;
   will-change: transform, opacity, filter;
 }
 
@@ -887,6 +982,28 @@ textarea {
 
 .admin-dock-item:hover svg {
   transform: scale(1.12);
+}
+
+.admin-dock-floating-label {
+  position: absolute;
+  left: 50%;
+  top: -1.5rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+  white-space: nowrap;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  background: rgba(15, 23, 42, 0.92);
+  color: #e2e8f0;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.2);
+}
+
+.dark .admin-dock-floating-label {
+  background: rgba(30, 41, 59, 0.94);
+  color: #e2e8f0;
 }
 
 .dark .admin-dock-outer-desktop {
@@ -947,7 +1064,7 @@ textarea {
 
   .app-main {
     padding: 1rem !important;
-    border-radius: 22px;
+    border-radius: 0;
   }
 
   .auth-layout-shell {
@@ -1029,8 +1146,12 @@ textarea {
     position: absolute;
     inset: -7px;
     border-radius: 999px;
-    background: radial-gradient(circle, rgba(143, 123, 232, 0.24), rgba(143, 123, 232, 0));
+    background: radial-gradient(circle, rgba(53, 109, 205, 0.18), rgba(53, 109, 205, 0));
     filter: blur(6px);
     z-index: -1;
+  }
+
+  .admin-dock-floating-label {
+    top: -1.35rem;
   }
 }

@@ -1,14 +1,26 @@
+import { BASE_CURRENCY, CURRENCY_OPTIONS, INR_TO_CURRENCY_RATE } from '../constants/currency'
+
 export function getCurrencyCode() {
-  if (typeof window === 'undefined') return 'USD'
-  return localStorage.getItem('rp_currency') || 'USD'
+  if (typeof window === 'undefined') return BASE_CURRENCY
+  const saved = localStorage.getItem('rp_currency') || BASE_CURRENCY
+  return CURRENCY_OPTIONS.includes(saved) ? saved : BASE_CURRENCY
+}
+
+function convertFromInr(amountInInr, currencyCode) {
+  const rate = INR_TO_CURRENCY_RATE[currencyCode] || 1
+  return Number(amountInInr || 0) * rate
 }
 
 export function formatCurrency(amount, currencyCode = getCurrencyCode()) {
+  const normalizedCurrency = CURRENCY_OPTIONS.includes(currencyCode) ? currencyCode : BASE_CURRENCY
+  const converted = convertFromInr(amount, normalizedCurrency)
+  const fractionDigits = normalizedCurrency === BASE_CURRENCY ? 0 : 2
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: currencyCode,
-    maximumFractionDigits: 0,
-  }).format(amount || 0)
+    currency: normalizedCurrency,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(converted)
 }
 
 export function formatDate(date) {

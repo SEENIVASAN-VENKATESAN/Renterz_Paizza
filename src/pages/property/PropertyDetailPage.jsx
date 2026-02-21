@@ -4,14 +4,16 @@ import Card from '../../components/ui/Card'
 import Skeleton from '../../components/ui/Skeleton'
 import StatusBadge from '../../components/ui/StatusBadge'
 import { usePageLoading } from '../../hooks/usePageLoading'
-import { propertiesSeed, unitsSeed } from '../../services/mockData'
+import { inventoryService } from '../../services/inventoryService'
 
 export default function PropertyDetailPage() {
   const { id } = useParams()
   const loading = usePageLoading(350)
 
-  const property = useMemo(() => propertiesSeed.find((item) => item.id === Number(id)), [id])
-  const units = useMemo(() => unitsSeed.filter((unit) => unit.property === property?.name), [property])
+  const properties = useMemo(() => inventoryService.getProperties(), [])
+  const unitsList = useMemo(() => inventoryService.getUnits(), [])
+  const property = useMemo(() => properties.find((item) => item.id === Number(id)), [id, properties])
+  const units = useMemo(() => unitsList.filter((unit) => unit.propertyId === property?.id), [property, unitsList])
 
   if (loading) {
     return (

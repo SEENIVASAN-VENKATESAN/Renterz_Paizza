@@ -23,18 +23,21 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async ({ email }) => {
     try {
-      await authService.requestPasswordReset(email)
-      showToast('If this email exists, a reset link has been sent.', 'success')
+      const response = await authService.requestPasswordReset(email)
+      showToast(response?.message || 'If this email exists, a reset password email has been sent.', 'success')
+      if (response?.temporaryPassword) {
+        showToast(`Temporary password: ${response.temporaryPassword}`, 'info', 12000)
+      }
       reset()
     } catch {
-      showToast('Unable to send reset link. Please try again.', 'error')
+      showToast('Unable to send reset password now. Please try again.', 'error')
     }
   }
 
   return (
     <div>
       <h2 className="text-2xl font-bold">Forgot password</h2>
-      <p className="mt-1 text-sm text-soft">Enter your email to receive a password reset link.</p>
+      <p className="mt-1 text-sm text-soft">Enter your email to receive a recovery password.</p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <FormField label="Email" error={errors.email?.message}>
@@ -42,7 +45,7 @@ export default function ForgotPasswordPage() {
         </FormField>
 
         <Button className="w-full" type="submit" disabled={!isValid || isSubmitting}>
-          {isSubmitting ? 'Sending link...' : <>Send reset link <ArrowRight size={15} className="ml-1" /></>}
+          {isSubmitting ? 'Sending...' : <>Send recovery password <ArrowRight size={15} className="ml-1" /></>}
         </Button>
       </form>
 

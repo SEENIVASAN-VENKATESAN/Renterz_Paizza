@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import FormField from '../../components/forms/FormField'
 import Button from '../../components/ui/Button'
+import { ROLE_HOME_PATH } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 import { loginSchema } from '../../utils/validationSchemas'
@@ -28,9 +29,11 @@ export default function LoginPage() {
 
   const onSubmit = async (values) => {
     try {
-      await login(values)
+      const session = await login(values)
       showToast('Login successful', 'success')
-      navigate(location.state?.from?.pathname || '/dashboard', { replace: true })
+      const homePath = ROLE_HOME_PATH[session?.user?.role] || '/dashboard'
+      const requestedPath = location.state?.from?.pathname
+      navigate(requestedPath || homePath, { replace: true })
     } catch {
       showToast('Unable to login. Please verify credentials.', 'error')
     }

@@ -1,11 +1,11 @@
 import { yupResolver } from '@hookform/resolvers/yup'
-import { ArrowRight, ChevronDown, Eye, EyeOff } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import FormField from '../../components/forms/FormField'
 import Button from '../../components/ui/Button'
-import { REGISTRATION_ROLES, ROLES } from '../../constants/roles'
+import { COUNTRY_CODES } from '../../constants/countryCodes'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 import { registerSchema } from '../../utils/validationSchemas'
@@ -22,16 +22,27 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isValid },
   } = useForm({
     resolver: yupResolver(registerSchema),
     mode: 'onChange',
-    defaultValues: { fullName: '', email: '', mobile: '', role: ROLES.TENANT, password: '', confirmPassword: '' },
+    defaultValues: { fullName: '', buildingName: '', email: '', countryIso: 'IN', mobile: '', password: '', confirmPassword: '' },
   })
+  const selectedCountryIso = watch('countryIso')
+  const selectedCountry = useMemo(
+    () => COUNTRY_CODES.find((item) => item.code === selectedCountryIso) || COUNTRY_CODES[0],
+    [selectedCountryIso]
+  )
 
   const onSubmit = async (values) => {
     try {
-      const { confirmPassword, ...payload } = values
+      const { confirmPassword: _confirmPassword, countryIso, ...rest } = values
+      const payload = {
+        ...rest,
+        countryIso,
+        mobile: `${selectedCountry.dialCode}${String(values.mobile || '').trim()}`,
+      }
       await registerUser(payload)
       logout()
       setIsRegistered(true)
@@ -56,7 +67,7 @@ export default function RegisterPage() {
         normalized.includes('unique')
 
       showToast(
-        isDuplicate ? 'Email or number already used' : 'Registration failed. Please try again.',
+        isDuplicate ? 'Email or number already used' : (rawMessage || 'Registration failed. Please try again.'),
         'error'
       )
     }
@@ -70,8 +81,8 @@ export default function RegisterPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold">Create your account</h2>
-      <p className="mt-1 text-sm text-soft">Start managing properties, units, and rent workflows.</p>
+      <h2 className="text-2xl font-bold">Register Admin</h2>
+      <p className="mt-1 text-sm text-soft">Create your building and admin account in one step.</p>
       {isRegistered ? (
         <div className="register-redirect-loader mt-4" role="status" aria-live="polite" aria-label="Redirecting">
           <div className="register-redirect-spinner" aria-hidden="true" />
@@ -88,22 +99,37 @@ export default function RegisterPage() {
           <input {...register('fullName')} className="input-base auth-input" placeholder="Eg. Alex Morgan" />
         </FormField>
 
+        <FormField label="Building Name" error={errors.buildingName?.message}>
+          <input {...register('buildingName')} className="input-base auth-input" placeholder="Eg. Palm Crest Residency" />
+        </FormField>
+
         <FormField label="Email" error={errors.email?.message}>
-          <input {...register('email')} className="input-base auth-input" placeholder="Eg. owner@renterz.com" />
+          <input {...register('email')} className="input-base auth-input" placeholder="Eg. admin@building.com" />
         </FormField>
 
         <FormField label="Mobile Number" error={errors.mobile?.message}>
-          <input {...register('mobile')} className="input-base auth-input" placeholder="Eg. 9876543210" />
-        </FormField>
-
-        <FormField label="Role" error={errors.role?.message}>
-          <div className="relative">
-            <select {...register('role')} className="input-base auth-input appearance-none pr-11 text-left">
-              {REGISTRATION_ROLES.map((role) => (
-                <option key={role} value={role}>{role}</option>
+          <div className="grid grid-cols-[112px_1fr] gap-2">
+            <select
+              {...register('countryIso')}
+              aria-label="Country dialing code"
+              className="input-base auth-input h-10 pl-2 pr-1 text-xs font-semibold"
+            >
+              {COUNTRY_CODES.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.code} {item.dialCode}
+                </option>
               ))}
             </select>
-            <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              {...register('mobile')}
+              aria-label="Mobile number"
+              className="input-base auth-input"
+              inputMode="numeric"
+              placeholder={`Eg. ${selectedCountry.dialCode} 9876543210`}
+              onInput={(event) => {
+                event.target.value = event.target.value.replace(/\D/g, '').slice(0, 15)
+              }}
+            />
           </div>
         </FormField>
 

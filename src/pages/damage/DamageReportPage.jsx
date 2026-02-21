@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
-import { Plus, Send } from 'lucide-react'
+import { Bot, Plus, Send, Sparkles } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
@@ -11,6 +11,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { usePageLoading } from '../../hooks/usePageLoading'
 import { useToast } from '../../hooks/useToast'
 import { dashboardByRole, damageReportsSeed, paymentsSeed, rentsSeed, unitsSeed } from '../../services/mockData'
+import { analyzeDamageWithAi } from '../../services/damageAiService'
 import { userService } from '../../services/userService'
 import { formatCurrency } from '../../utils/formatters'
 
@@ -27,6 +28,7 @@ const emptyCloseForm = {
   reportId: null,
   endImages: [],
   estimatedCost: '',
+  aiAssessment: null,
 }
 
 function fileToDataUrl(file) {
@@ -69,6 +71,7 @@ function normalizeReport(item) {
     startImages,
     endImages,
     estimatedCost: safeCost,
+    aiAssessment: item.aiAssessment || null,
     status: item.status || (endImages.length ? 'CLOSED' : 'OPEN'),
     paymentAdded: Boolean(item.paymentAdded),
   }
@@ -111,8 +114,9 @@ export default function DamageReportPage() {
   const [closeOpen, setCloseOpen] = useState(false)
   const [savingStart, setSavingStart] = useState(false)
   const [savingClose, setSavingClose] = useState(false)
+  const [runningAi, setRunningAi] = useState(false)
 
-  const isAdmin = user?.role === ROLES.ADMIN
+  const isAdmin = user?.role === ROLES.BUILDING_ADMIN || user?.role === ROLES.ADMIN
   const userEmail = String(user?.email || '').trim().toLowerCase()
   const tenantFallbackUnit = dashboardByRole.TENANT.unit.unitNo
 
@@ -208,8 +212,39 @@ export default function DamageReportPage() {
       reportId: report.id,
       endImages: Array.isArray(report.endImages) ? report.endImages : [],
       estimatedCost: report.estimatedCost || '',
+      aiAssessment: report.aiAssessment || null,
     })
     setCloseOpen(true)
+  }
+
+  const runAiDetection = async () => {
+    const target = reports.find((item) => item.id === closeForm.reportId)
+    if (!target) {
+      showToast('Damage report not found.', 'error')
+      return
+    }
+    if (!target.startImages?.length || !closeForm.endImages?.length) {
+      showToast('Add at least one start and end image for AI detection.', 'error')
+      return
+    }
+
+    setRunningAi(true)
+    try {
+      const result = await analyzeDamageWithAi({
+        startImage: target.startImages[0],
+        endImage: closeForm.endImages[0],
+      })
+      setCloseForm((prev) => ({
+        ...prev,
+        aiAssessment: result,
+        estimatedCost: prev.estimatedCost || String(result.suggestedEstimate),
+      }))
+      showToast('AI detection completed.', 'success')
+    } catch (error) {
+      showToast(error.message || 'Unable to run AI detection.', 'error')
+    } finally {
+      setRunningAi(false)
+    }
   }
 
   const handleStartDamage = async (event) => {
@@ -282,6 +317,7 @@ export default function DamageReportPage() {
               ...item,
               endImages: closeForm.endImages,
               estimatedCost,
+              aiAssessment: closeForm.aiAssessment || item.aiAssessment || null,
               status: 'CLOSED',
               paymentAdded: true,
               closedAt: new Date().toISOString(),
@@ -293,8 +329,8 @@ export default function DamageReportPage() {
       const payments = readPayments()
       const alreadyAdded = payments.some((item) => item.damageReportId === closeForm.reportId)
       if (!alreadyAdded) {
-        const paymentEntry = {
-          id: Date.now(),
+      const paymentEntry = {
+          id: new Date().getTime(),
           tenant: target.tenantName || target.tenantEmail || `Unit ${target.unit}`,
           amount: estimatedCost,
           date: toIsoDate(),
@@ -377,6 +413,13 @@ export default function DamageReportPage() {
               ) : null}
 
               <p className="mt-3 text-sm text-main">Estimated Cost: <strong>{item.estimatedCost ? formatCurrency(item.estimatedCost) : '-'}</strong></p>
+              {item.aiAssessment ? (
+                <div className="mt-2 rounded-xl border border-base bg-surface-soft p-2.5 text-xs">
+                  <p className="font-semibold text-main">AI Assessment</p>
+                  <p className="mt-1 text-soft">Severity: <strong>{item.aiAssessment.severity}</strong> | Confidence: <strong>{item.aiAssessment.confidence}%</strong></p>
+                  <p className="text-soft">Changed Area: <strong>{item.aiAssessment.changedAreaPct}%</strong> | Suggestion: <strong>{formatCurrency(item.aiAssessment.suggestedEstimate)}</strong></p>
+                </div>
+              ) : null}
               {item.paymentAdded ? <p className="mt-1 text-xs font-semibold text-emerald-600">Added to payments</p> : null}
 
               {isAdmin && item.status !== 'CLOSED' ? (
@@ -492,6 +535,35 @@ export default function DamageReportPage() {
                   <span className="absolute right-1 top-1 rounded bg-black/65 px-1.5 py-0.5 text-[10px] text-white">x</span>
                 </button>
               ))}
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={runAiDetection}
+            disabled={runningAi}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-base px-4 py-2 text-sm font-semibold text-main transition hover-surface-soft disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Bot size={15} />
+            {runningAi ? 'Analyzing...' : 'Run AI Damage Detection'}
+          </button>
+
+          {closeForm.aiAssessment ? (
+            <div className="rounded-xl border border-base bg-surface-soft p-3 text-sm">
+              <p className="inline-flex items-center gap-1 font-semibold text-main"><Sparkles size={14} /> AI Damage Insights</p>
+              <p className="mt-1 text-soft">
+                Severity: <strong>{closeForm.aiAssessment.severity}</strong> | Confidence: <strong>{closeForm.aiAssessment.confidence}%</strong>
+              </p>
+              <p className="text-soft">
+                Changed Area: <strong>{closeForm.aiAssessment.changedAreaPct}%</strong> | Suggested: <strong>{formatCurrency(closeForm.aiAssessment.suggestedEstimate)}</strong>
+              </p>
+              <p className="mt-1 text-soft">Recommended Range: <strong>{formatCurrency(closeForm.aiAssessment.estimatedCostRange.min)} - {formatCurrency(closeForm.aiAssessment.estimatedCostRange.max)}</strong></p>
+              <ul className="mt-2 list-disc pl-5 text-soft">
+                {closeForm.aiAssessment.primaryIssues.map((hint) => (
+                  <li key={hint}>{hint}</li>
+                ))}
+              </ul>
+              <p className="mt-1 text-soft">{closeForm.aiAssessment.recommendation}</p>
             </div>
           ) : null}
 

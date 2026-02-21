@@ -1,16 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Bell, LogOut, Menu, Moon, Sun } from 'lucide-react'
+import { Bell, LogOut, Menu, Moon, Settings, Sun } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { ROLES } from '../constants/roles'
+import { ROLE_LABELS, ROLES } from '../constants/roles'
 import { useAuth } from '../hooks/useAuth'
+import logo from '../assets/logo-clean.png'
 
 export default function TopNavbar({ onToggleSidebar, darkMode, onToggleTheme, currency, onChangeCurrency, currencyOptions = [] }) {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [openProfileMenu, setOpenProfileMenu] = useState(false)
   const profileMenuRef = useRef(null)
-  const showSidebarToggle = user?.role !== ROLES.ADMIN
-  const panelTitle = user?.role === ROLES.ADMIN ? 'Admin Panel' : 'Rent Tracking Platform'
+  const isBuildingAdmin = user?.role === ROLES.BUILDING_ADMIN || user?.role === ROLES.ADMIN
+  const isSuperAdmin = user?.role === ROLES.SUPER_ADMIN
+  const showSidebarToggle = isBuildingAdmin ? false : true
+  const buildingLabel = user?.buildingName || ''
+  const panelTitle = isSuperAdmin
+    ? 'Super Admin Panel'
+    : isBuildingAdmin
+      ? `Admin Panel${buildingLabel ? ` | ${buildingLabel}` : ''}`
+      : `Rent Tracking Platform${buildingLabel ? ` | ${buildingLabel}` : ''}`
 
   const initials = useMemo(() => {
     if (!user?.fullName) return 'U'
@@ -51,6 +59,7 @@ export default function TopNavbar({ onToggleSidebar, darkMode, onToggleTheme, cu
   return (
     <header className="app-topbar sticky top-0 z-30 flex h-16 items-center justify-between border-b border-base bg-surface px-4 md:px-6">
       <div className="flex items-center gap-3">
+        <img src={logo} alt="Renterz logo" className="h-10 w-10 rounded-lg border border-base object-cover lg:hidden" />
         {showSidebarToggle ? (
           <button type="button" className="rounded-lg p-2 hover-surface-soft lg:hidden" onClick={onToggleSidebar}>
             <Menu size={18} />
@@ -84,7 +93,7 @@ export default function TopNavbar({ onToggleSidebar, darkMode, onToggleTheme, cu
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-sm font-bold text-teal-700">{initials}</span>
             <span className="hidden text-left md:block">
               <strong className="block text-sm text-main">{user?.fullName || 'User'}</strong>
-              <small className="text-xs text-soft">{user?.role}</small>
+              <small className="text-xs text-soft">{ROLE_LABELS[user?.role] || user?.role}</small>
             </span>
           </button>
           <div className={`absolute right-0 mt-2 w-52 rounded-xl border border-base bg-surface p-2 shadow-lg transition ${openProfileMenu ? 'visible opacity-100' : 'invisible opacity-0'}`}>
@@ -101,6 +110,18 @@ export default function TopNavbar({ onToggleSidebar, darkMode, onToggleTheme, cu
                 ))}
               </select>
             </div>
+            {(isBuildingAdmin || isSuperAdmin) ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpenProfileMenu(false)
+                  navigate('/admin/profile-settings')
+                }}
+                className="mb-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-main hover-surface-soft"
+              >
+                <Settings size={15} /> Profile Settings
+              </button>
+            ) : null}
             <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-rose-600 hover:bg-rose-50">
               <LogOut size={15} /> Logout
             </button>

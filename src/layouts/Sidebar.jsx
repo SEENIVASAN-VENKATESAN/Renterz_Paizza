@@ -7,7 +7,7 @@ import { ROLES } from '../constants/roles'
 import { classNames } from '../utils/classNames'
 
 export default function Sidebar({ role, open, onClose }) {
-  const isAdmin = role === ROLES.ADMIN
+  const isAdmin = role === ROLES.BUILDING_ADMIN || role === ROLES.ADMIN
   const [isMobileDock, setIsMobileDock] = useState(() => window.innerWidth < 1024)
   const dockRef = useRef(null)
   const dockItemRefs = useRef([])
@@ -18,17 +18,17 @@ export default function Sidebar({ role, open, onClose }) {
   const navigate = useNavigate()
   const location = useLocation()
   const visibleMain = useMemo(() => NAV_ITEMS.filter((item) => item.roles.includes(role)), [role])
-  const extraIconByPath = {
+  const extraIconByPath = useMemo(() => ({
     '/maintenance': Wrench,
     '/damage-reports': TriangleAlert,
     '/communication': MessageSquare,
-  }
+  }), [])
   const visibleExtra = useMemo(
     () =>
       EXTRA_NAV_ITEMS
         .filter((item) => item.roles.includes(role))
         .map((item) => ({ ...item, icon: extraIconByPath[item.to] || MessageSquare })),
-    [role]
+    [extraIconByPath, role]
   )
   const adminItems = useMemo(() => [...visibleMain, ...visibleExtra], [visibleMain, visibleExtra])
   const mobileDockItems = useMemo(() => {
@@ -40,12 +40,43 @@ export default function Sidebar({ role, open, onClose }) {
       : adminItems
   }, [adminItems])
   const dockItems = isMobileDock ? mobileDockItems : adminItems
+  const activeDockItem = useMemo(() => {
+    const direct = dockItems.find((item) => location.pathname === item.to)
+    if (direct) return direct
+    return dockItems.find((item) => item.to !== '/dashboard' && location.pathname.startsWith(item.to)) || null
+  }, [dockItems, location.pathname])
+
+  const centerDockItem = (index, behavior = 'smooth') => {
+    const container = dockRef.current
+    const node = dockItemRefs.current[index]
+    if (!container || !node) return
+    const containerRect = container.getBoundingClientRect()
+    const nodeRect = node.getBoundingClientRect()
+    const delta = nodeRect.left + nodeRect.width / 2 - (containerRect.left + containerRect.width / 2)
+    autoScrollingRef.current = behavior === 'smooth'
+    container.scrollTo({ left: container.scrollLeft + delta, behavior })
+    if (behavior !== 'smooth') {
+      autoScrollingRef.current = false
+      return
+    }
+    setTimeout(() => {
+      autoScrollingRef.current = false
+    }, 150)
+  }
 
   useEffect(() => {
     const handleResize = () => setIsMobileDock(window.innerWidth < 1024)
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  useEffect(() => {
+    if (!isAdmin || !isMobileDock) return
+    const activeIndex = dockItems.findIndex((item) => item.to === location.pathname)
+    if (activeIndex < 0) return
+    centerDockItem(activeIndex, 'smooth')
+    lastNavigatedIndexRef.current = activeIndex
+  }, [isAdmin, isMobileDock, dockItems, location.pathname])
 
   useEffect(() => {
     if (!isAdmin) return undefined
@@ -106,24 +137,6 @@ export default function Sidebar({ role, open, onClose }) {
       return closestIndex
     }
 
-    const centerItem = (index, behavior = 'smooth') => {
-      const container = dockRef.current
-      const node = dockItemRefs.current[index]
-      if (!container || !node) return
-      const containerRect = container.getBoundingClientRect()
-      const nodeRect = node.getBoundingClientRect()
-      const delta = nodeRect.left + nodeRect.width / 2 - (containerRect.left + containerRect.width / 2)
-      autoScrollingRef.current = behavior === 'smooth'
-      container.scrollTo({ left: container.scrollLeft + delta, behavior })
-      if (behavior !== 'smooth') {
-        autoScrollingRef.current = false
-      } else {
-        setTimeout(() => {
-          autoScrollingRef.current = false
-        }, 120)
-      }
-    }
-
     const updateActiveIndex = () => {
       const closest = getClosestIndex()
       applyDockFocus()
@@ -134,7 +147,7 @@ export default function Sidebar({ role, open, onClose }) {
     const homeIndex = dockItems.findIndex((item) => item.to === '/dashboard')
     if (!isDesktop() && homeIndex >= 0 && !mobileDockInitializedRef.current) {
       mobileDockInitializedRef.current = true
-      centerItem(homeIndex, 'auto')
+      centerDockItem(homeIndex, 'auto')
     } else {
       updateActiveIndex()
     }
@@ -149,12 +162,13 @@ export default function Sidebar({ role, open, onClose }) {
       settleTimerRef.current = setTimeout(() => {
         const target = dockItems[closestIndex]
         if (!target) return
+        centerDockItem(closestIndex, 'smooth')
         if (lastNavigatedIndexRef.current === closestIndex && location.pathname === target.to) return
         if (location.pathname !== target.to) {
           navigate(target.to)
         }
         lastNavigatedIndexRef.current = closestIndex
-      }, 24)
+      }, 120)
     }
 
     applyDockFocus()
@@ -167,12 +181,25 @@ export default function Sidebar({ role, open, onClose }) {
     }
   }, [isAdmin, isMobileDock, dockItems, navigate, location.pathname])
 
+  const handleAdminDockClick = (event, item, index) => {
+    if (!isMobileDock) {
+      onClose()
+      return
+    }
+    event.preventDefault()
+    centerDockItem(index, 'smooth')
+    if (location.pathname !== item.to) {
+      navigate(item.to)
+    }
+    lastNavigatedIndexRef.current = index
+  }
+
   if (isAdmin) {
     return (
       <>
         <aside
           className={classNames(
-            'fixed bottom-3 left-0 right-0 z-40 mx-auto w-[calc(100vw-2.2rem)] max-w-[540px] px-2.5 py-2.5 motion-safe:animate-[dockSlideUp_320ms_ease-out_both] lg:inset-y-0 lg:left-0 lg:right-auto lg:mx-0 lg:w-24 lg:max-w-none lg:rounded-none lg:border-r lg:border-t-0 lg:border-l-0 lg:border-b-0 lg:p-3 lg:motion-safe:animate-none',
+            'fixed bottom-3 left-0 right-0 z-40 mx-auto w-[calc(100vw-2.2rem)] max-w-[540px] px-2.5 py-2.5 pointer-events-none motion-safe:animate-[dockSlideUp_320ms_ease-out_both] lg:inset-y-0 lg:left-0 lg:right-auto lg:mx-0 lg:w-24 lg:max-w-none lg:rounded-none lg:border-r lg:border-t-0 lg:border-l-0 lg:border-b-0 lg:p-3 lg:pointer-events-auto lg:motion-safe:animate-none',
             isMobileDock
               ? 'border-0 bg-transparent backdrop-blur-0'
               : 'admin-dock-outer-desktop rounded-full backdrop-blur-md'
@@ -181,10 +208,11 @@ export default function Sidebar({ role, open, onClose }) {
           <div className="mt-2 hidden justify-center lg:flex">
             <img src={logo} alt="Renterz logo" className="h-11 w-11 rounded-xl border border-base object-cover" />
           </div>
-          <nav className="flex justify-center lg:mt-10">
+          <nav className="flex justify-center lg:mt-3">
+            {isMobileDock && activeDockItem ? <div className="admin-dock-floating-label">{activeDockItem.label}</div> : null}
             <div
               className={classNames(
-                'w-full lg:w-[62px] lg:overflow-visible',
+                'w-full pointer-events-auto lg:w-[62px] lg:overflow-visible',
                 isMobileDock
                   ? 'admin-dock-u-shell'
                   : 'admin-dock-shell-desktop rounded-[999px] p-2.5 backdrop-blur-xl overflow-visible'
@@ -200,7 +228,7 @@ export default function Sidebar({ role, open, onClose }) {
               >
                 <div
                   className={classNames(
-                    'flex items-center gap-2.5',
+                    'relative flex items-center gap-2.5',
                     isMobileDock ? 'w-max flex-row' : 'min-w-0 flex-col justify-center'
                   )}
                 >
@@ -211,7 +239,7 @@ export default function Sidebar({ role, open, onClose }) {
                         dockItemRefs.current[index] = node
                       }}
                       to={item.to}
-                      onClick={onClose}
+                      onClick={(event) => handleAdminDockClick(event, item, index)}
                       title={item.label}
                       className={({ isActive }) =>
                         classNames(

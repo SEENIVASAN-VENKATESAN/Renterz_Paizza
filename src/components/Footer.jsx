@@ -1,18 +1,19 @@
-﻿import { Coffee, Github, Instagram, Linkedin, Mail, MapPin, Phone } from 'lucide-react'
+import { Coffee, Github, Instagram, Linkedin, Mail, MapPin, Phone } from 'lucide-react'
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 
 export default function Footer() {
   const year = useMemo(() => new Date().getFullYear(), [])
   const socials = [
     {
       label: 'GitHub',
-      href: 'https://github.com/',
+      href: 'https://github.com/SEENIVASAN-VENKATESAN',
       icon: Github,
       style: 'border-slate-400/50 bg-slate-100 text-slate-800 hover:border-slate-500/40 hover:bg-slate-900 hover:text-white',
     },
     {
       label: 'LinkedIn',
-      href: 'https://www.linkedin.com/',
+      href: 'https://www.linkedin.com/in/seenivasanvenkatesan/',
       icon: Linkedin,
       style: 'border-sky-300/60 bg-sky-50 text-sky-800 hover:border-sky-500/40 hover:bg-sky-700 hover:text-white',
     },
@@ -24,7 +25,7 @@ export default function Footer() {
     },
     {
       label: 'Buy Me a Coffee',
-      href: 'https://www.buymeacoffee.com/',
+      href: 'https://buymeacoffee.com/Seeni',
       icon: Coffee,
       style: 'border-amber-300/60 bg-amber-50 text-amber-900 hover:border-amber-500/40 hover:bg-amber-400 hover:text-slate-900',
     },
@@ -58,6 +59,7 @@ export default function Footer() {
               <li><a href="#landing-features" className="hover:text-main">Features</a></li>
               <li><a href="#landing-feedback" className="hover:text-main">Feedback</a></li>
               <li><a href="#landing-integration" className="hover:text-main">Integration</a></li>
+              <li><Link to="/documentation" className="hover:text-main">Documentation</Link></li>
             </ul>
           </div>
 
@@ -95,8 +97,11 @@ export default function Footer() {
         </div>
 
         <div className="mt-7 border-t border-base pt-4 text-xs text-soft sm:text-sm">
-          <p>© {year} Renterz. All rights reserved.</p>
+          <p>� {year} Renterz. All rights reserved.</p>
           <p className="mt-1">Built for modern rent tracking and property operations.</p>
+          <p className="mt-1">
+            <Link to="/documentation" className="font-semibold text-main hover:underline">Documentation</Link>
+          </p>
         </div>
       </div>
     </footer>
