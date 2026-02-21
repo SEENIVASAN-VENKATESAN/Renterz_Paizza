@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ArrowRight, Building2, CircleAlert, ReceiptText, Wallet } from 'lucide-react'
+import { ArrowRight, Building2, CircleAlert, LayoutGrid, ReceiptText, Wallet } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
@@ -98,6 +98,7 @@ export default function OwnerDashboard() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => navigate('/owner')}><Building2 size={14} /> Owner Module</Button>
+            <Button variant="secondary" onClick={() => navigate('/units')}><LayoutGrid size={14} /> Units</Button>
             <Button variant="secondary" onClick={() => navigate('/rent')}><Wallet size={14} /> Rent</Button>
             <Button variant="secondary" onClick={() => navigate('/payments')}><ReceiptText size={14} /> Payments</Button>
           </div>

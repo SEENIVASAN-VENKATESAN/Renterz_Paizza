@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import Modal from '../../components/ui/Modal'
@@ -7,16 +7,40 @@ import StatusBadge from '../../components/ui/StatusBadge'
 import Table from '../../components/ui/Table'
 import { useAuth } from '../../hooks/useAuth'
 import { usePageLoading } from '../../hooks/usePageLoading'
+import { useToast } from '../../hooks/useToast'
 import { paymentService } from '../../services/paymentService'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 
 export default function PaymentPage() {
   const loading = usePageLoading(350)
   const { user } = useAuth()
-  const payments = useMemo(() => paymentService.listPaymentsForUser(user), [user])
+  const { showToast } = useToast()
+  const [payments, setPayments] = useState([])
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [dateFilter, setDateFilter] = useState('')
   const [selected, setSelected] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const records = await paymentService.listPaymentsRemote()
+        if (!cancelled) {
+          setPayments(records)
+        }
+      } catch {
+        if (!cancelled) {
+          const local = paymentService.listPaymentsForUser(user)
+          setPayments(local)
+          showToast('Showing local payment data because backend fetch failed.', 'info')
+        }
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [showToast, user])
 
   const filtered = useMemo(
     () => payments.filter((item) => {
@@ -42,6 +66,23 @@ export default function PaymentPage() {
     link.download = `receipt-${payment.id}.txt`
     link.click()
     URL.revokeObjectURL(url)
+  }
+
+  const startGatewayCheckout = async (payment) => {
+    try {
+      const gateway = await paymentService.initGatewayCheckout({
+        amount: payment.amount,
+        paymentMode: payment.method || 'UPI',
+        successUrl: window.location.href,
+        cancelUrl: window.location.href,
+      })
+      showToast(gateway?.message || 'Gateway initialized.', gateway?.dryRun ? 'info' : 'success')
+      if (gateway?.checkoutUrl) {
+        window.open(gateway.checkoutUrl, '_blank', 'noopener,noreferrer')
+      }
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Unable to initialize payment gateway.', 'error')
+    }
   }
 
   const columns = [
@@ -100,7 +141,10 @@ export default function PaymentPage() {
             </div>
             <div className="flex justify-between">
               <StatusBadge status={selected.status} />
-              <Button onClick={() => downloadReceipt(selected)}>Download Receipt</Button>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => startGatewayCheckout(selected)}>Pay via Gateway</Button>
+                <Button onClick={() => downloadReceipt(selected)}>Download Receipt</Button>
+              </div>
             </div>
           </div>
         ) : null}

@@ -1,14 +1,19 @@
 import { Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
 import Skeleton from '../../components/ui/Skeleton'
 import StatusBadge from '../../components/ui/StatusBadge'
 import Table from '../../components/ui/Table'
 import { MAINTENANCE_BILLS_KEY } from '../../constants/app'
+import { ROLES } from '../../constants/roles'
+import { useAuth } from '../../hooks/useAuth'
 import { usePageLoading } from '../../hooks/usePageLoading'
+import { useToast } from '../../hooks/useToast'
 import { maintenanceSeed } from '../../services/mockData'
 import { inventoryService } from '../../services/inventoryService'
+import { maintenanceService } from '../../services/maintenanceService'
+import { ownerService } from '../../services/ownerService'
 import { formatDate } from '../../utils/formatters'
 
 const newServiceDefaults = {
@@ -39,10 +44,38 @@ function writeMaintenance(records) {
 
 export default function MaintenancePage() {
   const loading = usePageLoading(350)
-  const units = inventoryService.getUnits()
+  const { user } = useAuth()
+  const { showToast } = useToast()
+  const isOwner = user?.role === ROLES.OWNER
+  const [units, setUnits] = useState(() => inventoryService.getUnits())
   const [tickets, setTickets] = useState(() => readMaintenance())
   const [openAdd, setOpenAdd] = useState(false)
   const [form, setForm] = useState(newServiceDefaults)
+
+  useEffect(() => {
+    if (!isOwner) return
+    let cancelled = false
+    const load = async () => {
+      try {
+        const [records, ownerUnits] = await Promise.all([
+          maintenanceService.listOwnerMaintenance(),
+          ownerService.listOwnedUnitsRemote(),
+        ])
+        if (!cancelled) {
+          setTickets(records)
+          if (ownerUnits.length) setUnits(ownerUnits)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          showToast(error?.response?.data?.message || 'Unable to load maintenance from backend.', 'error')
+        }
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [isOwner, showToast])
 
   const markPaid = (id) => {
     setTickets((prev) => {
@@ -52,28 +85,42 @@ export default function MaintenancePage() {
     })
   }
 
-  const addService = (event) => {
+  const addService = async (event) => {
     event.preventDefault()
     const selectedUnit = units.find((unit) => Number(unit.id) === Number(form.unitId))
     if (!selectedUnit || !form.issue.trim() || !form.dueDate || Number(form.amount) <= 0) return
 
-    const next = {
-      id: new Date().getTime(),
-      unitId: selectedUnit.id,
-      unit: selectedUnit.unitNo,
-      issue: form.issue.trim(),
-      dueDate: form.dueDate,
-      status: form.status,
-      paid: false,
-      amount: Number(form.amount),
-      billMonth: String(form.dueDate).slice(0, 7),
+    try {
+      if (isOwner) {
+        const created = await maintenanceService.createOwnerMaintenance({
+          unitId: selectedUnit.id,
+          issue: form.issue,
+          dueDate: form.dueDate,
+          amount: form.amount,
+          status: 'DUE',
+        })
+        setTickets((prev) => [created, ...prev])
+      } else {
+        const next = {
+          id: new Date().getTime(),
+          unitId: selectedUnit.id,
+          unit: selectedUnit.unitNo,
+          issue: form.issue.trim(),
+          dueDate: form.dueDate,
+          status: form.status,
+          paid: false,
+          amount: Number(form.amount),
+          billMonth: String(form.dueDate).slice(0, 7),
+        }
+        const updated = [next, ...tickets]
+        setTickets(updated)
+        writeMaintenance(updated)
+      }
+      setForm(newServiceDefaults)
+      setOpenAdd(false)
+    } catch (error) {
+      showToast(error?.response?.data?.message || error.message || 'Unable to create maintenance bill.', 'error')
     }
-
-    const updated = [next, ...tickets]
-    setTickets(updated)
-    writeMaintenance(updated)
-    setForm(newServiceDefaults)
-    setOpenAdd(false)
   }
 
   const columns = [
@@ -85,7 +132,7 @@ export default function MaintenancePage() {
       key: 'paid',
       label: 'Paid',
       render: (row) => (
-        row.paid ? <StatusBadge status="PAID" /> : <button type="button" onClick={() => markPaid(row.id)} className="rounded-lg border border-base px-2.5 py-1">Mark as Paid</button>
+        row.paid || isOwner ? <StatusBadge status={row.paid ? 'PAID' : row.status} /> : <button type="button" onClick={() => markPaid(row.id)} className="rounded-lg border border-base px-2.5 py-1">Mark as Paid</button>
       ),
     },
   ]

@@ -370,7 +370,7 @@ export default function UnitPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Units</h2>
-          <p className="text-sm text-soft">Admin assigns Owner or Tenant by filling complete user details and documents.</p>
+          <p className="text-sm text-soft">Owner manages unit assignments by filling complete user details and documents.</p>
         </div>
       </div>
 

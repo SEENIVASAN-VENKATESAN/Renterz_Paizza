@@ -1,5 +1,8 @@
 import { RENTS_KEY } from '../constants/app'
 import { rentsSeed } from './mockData'
+import api from './api'
+
+const useDemoAuth = import.meta.env.VITE_ENABLE_DEMO_AUTH !== 'false'
 
 function readRents() {
   try {
@@ -30,7 +33,42 @@ function deriveStatus(dueDate) {
   return target < today ? 'OVERDUE' : 'PENDING'
 }
 
+/**
+ * Maps backend rent DTO to frontend rent table row shape.
+ */
+function toRentItem(item) {
+  return {
+    id: item.rentId,
+    allocationId: item.allocationId,
+    unitId: item.unitId ?? null,
+    unit: item.unitNumber || '-',
+    tenant: item.tenantName || 'Tenant',
+    tenantEmail: item.tenantEmail || '',
+    dueDate: item.dueDate,
+    amount: Number(item.amount || 0),
+    status: item.status,
+    userId: item.tenantId ?? null,
+    userEmail: item.tenantEmail || '',
+    createdAt: item.createdAt,
+  }
+}
+
 export const rentService = {
+  /**
+   * Loads rents from role-specific backend endpoints.
+   */
+  async listRentsRemote(role) {
+    try {
+      const endpoint = role === 'OWNER' ? '/api/owner/rents' : '/api/tenant/rents'
+      const { data } = await api.get(endpoint)
+      const content = Array.isArray(data) ? data : data?.content || []
+      return content.map(toRentItem)
+    } catch (error) {
+      if (!useDemoAuth) throw error
+      return readRents()
+    }
+  },
+
   listRents() {
     return readRents()
   },

@@ -91,7 +91,7 @@ export default function AdminDashboard() {
           <h3 className="text-lg font-semibold">Quick Add</h3>
           <div className="mt-4 space-y-2 text-sm">
             <button type="button" onClick={() => navigate('/properties')} className="flex w-full items-center gap-2 rounded-xl border border-base px-3 py-2 hover:bg-slate-50"><Plus size={15} /> Add Property</button>
-            <button type="button" onClick={() => navigate('/units')} className="flex w-full items-center gap-2 rounded-xl border border-base px-3 py-2 hover:bg-slate-50"><Plus size={15} /> Allocate Unit</button>
+            <button type="button" onClick={() => navigate('/users')} className="flex w-full items-center gap-2 rounded-xl border border-base px-3 py-2 hover:bg-slate-50"><UserPlus size={15} /> Add User</button>
             <button type="button" disabled onClick={() => showToast('Upload ledger module is planned in next phase.', 'info')} className="flex w-full cursor-not-allowed items-center gap-2 rounded-xl border border-base px-3 py-2 text-soft opacity-70"><Upload size={15} /> Upload Ledger (Coming soon)</button>
           </div>
         </Card>

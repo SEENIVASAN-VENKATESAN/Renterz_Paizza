@@ -12,6 +12,7 @@ import { usePageLoading } from '../../hooks/usePageLoading'
 import { useToast } from '../../hooks/useToast'
 import { dashboardByRole, damageReportsSeed, paymentsSeed, rentsSeed, unitsSeed } from '../../services/mockData'
 import { analyzeDamageWithAi } from '../../services/damageAiService'
+import { damageService } from '../../services/damageService'
 import { userService } from '../../services/userService'
 import { formatCurrency } from '../../utils/formatters'
 
@@ -136,6 +137,35 @@ export default function DamageReportPage() {
     setReports(next)
     localStorage.setItem(DAMAGE_REPORTS_KEY, JSON.stringify(next))
   }
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        if (isAdmin) {
+          if (!cancelled) setReports(readReports())
+          return
+        }
+        if (user?.role === ROLES.OWNER) {
+          const records = await damageService.listOwnerDamages()
+          if (!cancelled) setReports(records.map(normalizeReport))
+          return
+        }
+        if (user?.role === ROLES.TENANT) {
+          const records = await damageService.listTenantDamages()
+          if (!cancelled) setReports(records.map(normalizeReport))
+          return
+        }
+        if (!cancelled) setReports(readReports())
+      } catch {
+        if (!cancelled) setReports(readReports())
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [isAdmin, user?.role])
 
   const resolveTenantByUnit = (unitValue) => {
     const normalized = String(unitValue || '').trim().toUpperCase()

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import FormField from '../../components/forms/FormField'
 import Button from '../../components/ui/Button'
@@ -9,6 +9,8 @@ import Table from '../../components/ui/Table'
 import { ROLES } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
 import { usePageLoading } from '../../hooks/usePageLoading'
+import { useToast } from '../../hooks/useToast'
+import { complaintService } from '../../services/complaintService'
 import { complaintSeed } from '../../services/mockData'
 import { inventoryService } from '../../services/inventoryService'
 import { formatDateTime } from '../../utils/formatters'
@@ -37,7 +39,9 @@ function writeComplaints(records) {
 export default function ComplaintPage() {
   const loading = usePageLoading(350)
   const { user } = useAuth()
+  const { showToast } = useToast()
   const isAdmin = user?.role === ROLES.BUILDING_ADMIN || user?.role === ROLES.ADMIN
+  const isTenant = user?.role === ROLES.TENANT
   const units = inventoryService.getUnits()
   const unitById = new Map(units.map((item) => [Number(item.id), item]))
   const [complaints, setComplaints] = useState(() => readComplaints())
@@ -51,39 +55,86 @@ export default function ComplaintPage() {
     formState: { errors, isValid },
   } = useForm({ mode: 'onChange', defaultValues: { unitId: '', title: '', description: '' } })
 
-  const onSubmit = (values) => {
+  useEffect(() => {
+    if (isAdmin) return
+    let cancelled = false
+    const load = async () => {
+      try {
+        const records = isTenant
+          ? await complaintService.listTenantComplaints()
+          : await complaintService.listOwnerComplaints()
+        if (!cancelled) setComplaints(records)
+      } catch (error) {
+        if (!cancelled) {
+          showToast(error?.response?.data?.message || 'Unable to load complaints from backend.', 'error')
+        }
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [isAdmin, isTenant, showToast])
+
+  const onSubmit = async (values) => {
     const unit = unitById.get(Number(values.unitId))
-    const next = [
-      {
-        id: new Date().getTime(),
-        unitId: Number(values.unitId) || null,
-        unitName: unit?.unitNo || '',
-        title: values.title,
-        description: values.description,
-        status: 'OPEN',
-        createdByUserId: user?.id ?? null,
-        createdByName: user?.fullName || 'User',
-        createdByRole: user?.role || 'TENANT',
-        createdAt: new Date().toISOString(),
-      },
-      ...complaints,
-    ]
-    setComplaints(next)
-    writeComplaints(next)
-    reset()
+    try {
+      if (!isAdmin && isTenant) {
+        const created = await complaintService.createTenantComplaint(values)
+        const next = [{ ...created, unitName: unit?.unitNo || '' }, ...complaints]
+        setComplaints(next)
+        reset()
+        return
+      }
+      const next = [
+        {
+          id: new Date().getTime(),
+          unitId: Number(values.unitId) || null,
+          unitName: unit?.unitNo || '',
+          title: values.title,
+          description: values.description,
+          status: 'OPEN',
+          createdByUserId: user?.id ?? null,
+          createdByName: user?.fullName || 'User',
+          createdByRole: user?.role || 'TENANT',
+          createdAt: new Date().toISOString(),
+        },
+        ...complaints,
+      ]
+      setComplaints(next)
+      writeComplaints(next)
+      reset()
+    } catch (error) {
+      showToast(error?.response?.data?.message || error.message || 'Unable to submit complaint.', 'error')
+    }
   }
 
-  const handleStatusChange = (id, nextStatus) => {
-    const updated = complaints.map((item) => (
-      Number(item.id) === Number(id) ? { ...item, status: nextStatus } : item
-    ))
-    setComplaints(updated)
-    writeComplaints(updated)
+  const handleStatusChange = async (id, nextStatus) => {
+    try {
+      if (!isAdmin) {
+        const updatedItem = await complaintService.updateOwnerComplaintStatus(id, nextStatus)
+        const updated = complaints.map((item) => (
+          Number(item.id) === Number(id) ? { ...item, ...updatedItem } : item
+        ))
+        setComplaints(updated)
+        return
+      }
+      const updated = complaints.map((item) => (
+        Number(item.id) === Number(id) ? { ...item, status: nextStatus } : item
+      ))
+      setComplaints(updated)
+      writeComplaints(updated)
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Unable to update complaint status.', 'error')
+    }
   }
 
-  const visibleComplaints = isAdmin
-    ? complaints
-    : complaints.filter((item) => item.createdByUserId === user?.id)
+  const visibleComplaints = useMemo(() => {
+    if (isAdmin) return complaints
+    if (isTenant) return complaints.filter((item) => item.createdByUserId === user?.id)
+    if (user?.role === ROLES.OWNER) return complaints
+    return complaints.filter((item) => item.createdByUserId === user?.id)
+  }, [complaints, isAdmin, isTenant, user?.id, user?.role])
 
   const filteredComplaints = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -185,7 +236,7 @@ export default function ComplaintPage() {
 
   return (
     <div className="grid gap-4 lg:grid-cols-5">
-      <Card className="lg:col-span-2">
+      {isTenant ? <Card className="lg:col-span-2">
         <h2 className="text-xl font-bold">Raise Complaint</h2>
         <form className="mt-4 space-y-3" onSubmit={handleSubmit(onSubmit)}>
           <FormField label="Unit" error={errors.unitId?.message}>
@@ -206,9 +257,9 @@ export default function ComplaintPage() {
           </FormField>
           <Button type="submit" disabled={!isValid}>Submit Complaint</Button>
         </form>
-      </Card>
+      </Card> : null}
 
-      <Card className="lg:col-span-3">
+      <Card className={isTenant ? 'lg:col-span-3' : 'lg:col-span-5'}>
         <h3 className="text-lg font-semibold">My Complaints</h3>
         <div className="mt-4 space-y-3">
           {filteredComplaints.map((item) => (

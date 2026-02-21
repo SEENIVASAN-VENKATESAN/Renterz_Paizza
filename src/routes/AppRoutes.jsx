@@ -71,22 +71,21 @@ export default function AppRoutes() {
           <Route path="/complaints" element={<ComplaintPage />} />
           <Route path="/damage-reports" element={<DamageReportPage />} />
           <Route path="/communication" element={<CommunicationPage />} />
-        </Route>
-      </Route>
-
-      <Route element={<ProtectedRoute allowedRoles={[ROLES.BUILDING_ADMIN, ROLES.OWNER, ROLES.TENANT]} />}>
-        <Route element={<AppLayout />}>
           <Route path="/payments" element={<PaymentPage />} />
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={[ROLES.BUILDING_ADMIN, ROLES.SUPER_ADMIN]} />}>
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.BUILDING_ADMIN]} />}>
         <Route element={<AppLayout />}>
           <Route path="/admin/profile-settings" element={<AdminProfileSettingsPage />} />
           <Route path="/properties" element={<PropertyListPage />} />
           <Route path="/properties/:id" element={<PropertyDetailPage />} />
-          <Route path="/units" element={<UnitPage />} />
           <Route path="/users" element={<UserManagementPage />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.BUILDING_ADMIN, ROLES.OWNER]} />}>
+        <Route element={<AppLayout />}>
           <Route path="/maintenance" element={<MaintenancePage />} />
         </Route>
       </Route>
@@ -94,6 +93,7 @@ export default function AppRoutes() {
       <Route element={<ProtectedRoute allowedRoles={[ROLES.OWNER]} />}>
         <Route element={<AppLayout />}>
           <Route path="/owner" element={<OwnerModulePage />} />
+          <Route path="/units" element={<UnitPage />} />
         </Route>
       </Route>
 

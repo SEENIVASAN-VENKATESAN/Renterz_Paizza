@@ -1,33 +1,73 @@
 import api from './api'
 import { createDemoJwt } from '../utils/jwt'
-import { REGISTRATION_ROLES, ROLES } from '../constants/roles'
+import { ROLES } from '../constants/roles'
 import { buildingService } from './buildingService'
 import { userService } from './userService'
 import { emailService } from './emailService'
 
 const useDemoAuth = import.meta.env.VITE_ENABLE_DEMO_AUTH !== 'false'
 
+/**
+ * Converts phone numbers to backend-compatible 10-15 digit strings.
+ */
+function normalizeMobile(rawMobile) {
+  return String(rawMobile || '').replace(/\D/g, '').slice(0, 15)
+}
+
+/**
+ * Maps register form values to the backend register contract.
+ */
+function toRegisterRequest(payload) {
+  return {
+    name: String(payload.fullName || payload.name || '').trim(),
+    email: String(payload.email || '').trim().toLowerCase(),
+    mobile: normalizeMobile(payload.mobile),
+    password: String(payload.password || ''),
+    profileImageUrl: String(payload.profileImageUrl || ''),
+  }
+}
+
+/**
+ * Builds a frontend session payload from backend login response.
+ */
+function toSessionResponse(data) {
+  return {
+    token: data?.token,
+    user: data?.user || {
+      email: data?.email || '',
+      role: data?.role || '',
+    },
+  }
+}
+
 export const authService = {
   async me() {
-    const { data } = await api.get('/auth/me')
-    return data
+    try {
+      const { data } = await api.get('/api/common/users/me')
+      return {
+        id: data?.userId ?? null,
+        fullName: data?.name || '',
+        email: data?.email || '',
+        mobile: data?.mobile || '',
+        role: data?.role || '',
+        profileImageUrl: data?.profileImageUrl || '',
+      }
+    } catch (error) {
+      if (!useDemoAuth) throw error
+      // Demo users (for example SUPER_ADMIN) can run without backend identity endpoint.
+      return null
+    }
   },
 
   async login(credentials) {
     if (!useDemoAuth) {
       const { data } = await api.post('/auth/login', credentials)
-      return {
-        token: data.token,
-        user: data.user || null,
-      }
+      return toSessionResponse(data)
     }
 
     try {
       const { data } = await api.post('/auth/login', credentials)
-      return {
-        token: data.token,
-        user: data.user || null,
-      }
+      return toSessionResponse(data)
     } catch {
       const user = userService.findByCredentials(credentials.email, credentials.password)
       if (!user) {
@@ -46,28 +86,25 @@ export const authService = {
   },
 
   async register(payload) {
-    const normalizedPayload = {
-      ...payload,
-      role: ROLES.BUILDING_ADMIN,
-    }
+    const normalizedPayload = toRegisterRequest(payload)
 
     if (!useDemoAuth) {
-      const { data } = await api.post('/auth/register', normalizedPayload)
-      return {
-        token: data.token,
-        user: data.user || null,
-      }
+      await api.post('/auth/register', normalizedPayload)
+      return this.login({
+        email: normalizedPayload.email,
+        password: normalizedPayload.password,
+      })
     }
 
     try {
-      const { data } = await api.post('/auth/register', normalizedPayload)
-      return {
-        token: data.token,
-        user: data.user || null,
-      }
+      await api.post('/auth/register', normalizedPayload)
+      return this.login({
+        email: normalizedPayload.email,
+        password: normalizedPayload.password,
+      })
     } catch {
-      const safeRole = REGISTRATION_ROLES.includes(normalizedPayload.role) ? normalizedPayload.role : ROLES.BUILDING_ADMIN
-      const buildingName = String(normalizedPayload.buildingName || '').trim()
+      const safeRole = ROLES.BUILDING_ADMIN
+      const buildingName = String(payload.buildingName || '').trim()
       const dbName = buildingName
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '_')
@@ -80,7 +117,7 @@ export const authService = {
       })
 
       const user = userService.addUser({
-        ...normalizedPayload,
+        ...payload,
         role: safeRole,
         buildingId: building?.id ?? Date.now(),
         buildingName: building?.name || buildingName || 'New Building',
@@ -99,10 +136,6 @@ export const authService = {
 
   async requestPasswordReset(email) {
     const normalizedEmail = String(email || '').trim().toLowerCase()
-    if (!useDemoAuth) {
-      const { data } = await api.post('/auth/forgot-password', { email: normalizedEmail })
-      return data
-    }
 
     try {
       const { data } = await api.post('/auth/forgot-password', { email: normalizedEmail })

@@ -3,6 +3,9 @@ import { ROLES } from '../constants/roles'
 import { complaintSeed, maintenanceSeed } from './mockData'
 import { inventoryService } from './inventoryService'
 import { rentService } from './rentService'
+import api from './api'
+
+const useDemoAuth = import.meta.env.VITE_ENABLE_DEMO_AUTH !== 'false'
 
 function assertOwner(user) {
   if (!user || user.role !== ROLES.OWNER) {
@@ -40,6 +43,29 @@ function isOwnedByUser(unit, user) {
 }
 
 export const ownerService = {
+  /**
+   * Loads owner units from backend and maps them to unit-table shape.
+   */
+  async listOwnedUnitsRemote() {
+    try {
+      const { data } = await api.get('/api/owner/units')
+      const content = Array.isArray(data) ? data : data?.content || []
+      return content.map((item) => ({
+        id: item.unitId,
+        unitNo: item.unitNumber,
+        propertyId: item.propertyId,
+        property: `Property-${item.propertyId}`,
+        floor: item.floor,
+        owner: '',
+        tenant: '',
+        status: item.status,
+      }))
+    } catch (error) {
+      if (!useDemoAuth) throw error
+      return []
+    }
+  },
+
   getOwnedUnits(user) {
     assertOwner(user)
     const units = inventoryService.getUnits()

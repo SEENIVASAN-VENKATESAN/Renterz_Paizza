@@ -7,6 +7,17 @@ import { buildSessionUser, isTokenExpired, parseJwt } from '../utils/jwt'
 import { AuthContext } from './authContextInstance'
 import { presenceService } from '../services/presenceService'
 
+/**
+ * Normalizes backend and legacy role labels into app role constants.
+ */
+function normalizeAppRole(rawRole) {
+  const value = String(rawRole || '').trim().toUpperCase()
+  if (!value) return ''
+  if (value === 'ADMIN' || value === 'BUILDING_ADMIN' || value === 'BUILDINGADMIN') return ROLES.BUILDING_ADMIN
+  if (value === 'SUPERADMIN' || value === 'SUPER_ADMIN') return ROLES.SUPER_ADMIN
+  return value
+}
+
 function readStoredToken() {
   return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY)
 }
@@ -76,8 +87,11 @@ export function AuthProvider({ children }) {
         if (!payloadUser) return
         const mergedUser = {
           ...payloadUser,
+          id: me.id ?? payloadUser.id ?? null,
           fullName: me.fullName || payloadUser.fullName,
           email: me.email || payloadUser.email,
+          mobile: me.mobile || payloadUser.mobile || '',
+          role: normalizeAppRole(me.role || payloadUser.role),
           buildingStatus: me.buildingStatus || null,
           buildingName: me.buildingName || payloadUser.buildingName || '',
         }

@@ -9,9 +9,11 @@ import Pagination from '../../components/ui/Pagination'
 import Skeleton from '../../components/ui/Skeleton'
 import StatusBadge from '../../components/ui/StatusBadge'
 import { PROPERTY_TYPES } from '../../constants/status'
+import { useAuth } from '../../hooks/useAuth'
 import { usePagination } from '../../hooks/usePagination'
 import { useToast } from '../../hooks/useToast'
 import { inventoryService } from '../../services/inventoryService'
+import { propertyService } from '../../services/propertyService'
 import buildingPreview from '../../assets/Building/download.jpg'
 
 const emptyProperty = { name: '', city: '', type: 'Apartment', status: 'ACTIVE', units: 0 }
@@ -19,8 +21,9 @@ const emptyProperty = { name: '', city: '', type: 'Apartment', status: 'ACTIVE',
 export default function PropertyListPage() {
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const { user } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [properties, setProperties] = useState(() => inventoryService.getProperties())
+  const [properties, setProperties] = useState([])
   const [search, setSearch] = useState('')
   const [cityFilter, setCityFilter] = useState('ALL')
   const [typeFilter, setTypeFilter] = useState('ALL')
@@ -53,7 +56,7 @@ export default function PropertyListPage() {
     setModalOpen(true)
   }
 
-  const saveProperty = (event) => {
+  const saveProperty = async (event) => {
     event.preventDefault()
     const submitAction = event.nativeEvent?.submitter?.value || 'save'
     const unitCount = Number(formState.units)
@@ -66,31 +69,73 @@ export default function PropertyListPage() {
       return
     }
     try {
-      const savedProperty = inventoryService.saveProperty(formState, editingId)
-      setProperties(inventoryService.getProperties())
+      let savedProperty = null
+      if (editingId) {
+        savedProperty = await propertyService.updateProperty(editingId, formState)
+      } else {
+        savedProperty = await propertyService.createProperty(formState, user?.id)
+      }
+      const remote = await propertyService.listProperties()
+      setProperties(remote.map((item) => ({ ...item, units: item.units || 0 })))
       setModalOpen(false)
       if (!editingId && submitAction === 'allocate' && savedProperty?.id) {
         navigate(`/units?propertyId=${savedProperty.id}&allocation=OWNER_PENDING`)
       }
     } catch (error) {
-      showToast(error.message || 'Unable to save property.', 'error')
+      try {
+        const savedProperty = inventoryService.saveProperty(formState, editingId)
+        setProperties(inventoryService.getProperties())
+        setModalOpen(false)
+        if (!editingId && submitAction === 'allocate' && savedProperty?.id) {
+          navigate(`/units?propertyId=${savedProperty.id}&allocation=OWNER_PENDING`)
+        }
+        showToast('Saved using local fallback.', 'info')
+      } catch (fallbackError) {
+        showToast(error?.response?.data?.message || fallbackError.message || 'Unable to save property.', 'error')
+      }
     }
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     try {
-      inventoryService.deleteProperty(deleteId)
-      setProperties(inventoryService.getProperties())
+      await propertyService.deleteProperty(deleteId)
+      const remote = await propertyService.listProperties()
+      setProperties(remote.map((item) => ({ ...item, units: item.units || 0 })))
       setDeleteId(null)
       showToast('Property deleted successfully.', 'success')
     } catch (error) {
-      showToast(error.message || 'Unable to delete property.', 'error')
+      try {
+        inventoryService.deleteProperty(deleteId)
+        setProperties(inventoryService.getProperties())
+        setDeleteId(null)
+        showToast('Deleted using local fallback.', 'info')
+      } catch (fallbackError) {
+        showToast(error?.response?.data?.message || fallbackError.message || 'Unable to delete property.', 'error')
+      }
     }
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 350)
-    return () => clearTimeout(timer)
+    let cancelled = false
+    const load = async () => {
+      setLoading(true)
+      try {
+        const remote = await propertyService.listProperties()
+        if (!cancelled) {
+          setProperties(remote.map((item) => ({ ...item, units: item.units || 0 })))
+        }
+      } catch {
+        if (!cancelled) {
+          setProperties(inventoryService.getProperties())
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (

@@ -13,6 +13,6 @@ export const RENTS_KEY = 'rp_rents'
 export const ONLINE_PRESENCE_KEY = 'rp_online_presence'
 
 export const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
   timeout: 12000,
 }

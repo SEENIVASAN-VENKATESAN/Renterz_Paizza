@@ -1,19 +1,38 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Card from '../../components/ui/Card'
 import Skeleton from '../../components/ui/Skeleton'
 import StatusBadge from '../../components/ui/StatusBadge'
 import { usePageLoading } from '../../hooks/usePageLoading'
 import { inventoryService } from '../../services/inventoryService'
+import { propertyService } from '../../services/propertyService'
 
 export default function PropertyDetailPage() {
   const { id } = useParams()
   const loading = usePageLoading(350)
 
-  const properties = useMemo(() => inventoryService.getProperties(), [])
+  const [property, setProperty] = useState(null)
   const unitsList = useMemo(() => inventoryService.getUnits(), [])
-  const property = useMemo(() => properties.find((item) => item.id === Number(id)), [id, properties])
   const units = useMemo(() => unitsList.filter((unit) => unit.propertyId === property?.id), [property, unitsList])
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const record = await propertyService.getProperty(id)
+        if (!cancelled) setProperty(record)
+      } catch {
+        if (!cancelled) {
+          const local = inventoryService.getProperties().find((item) => item.id === Number(id)) || null
+          setProperty(local)
+        }
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   if (loading) {
     return (

@@ -59,7 +59,7 @@ export default function RentPage() {
   const { showToast } = useToast()
   const isOwner = user?.role === ROLES.OWNER
   const isTenant = user?.role === ROLES.TENANT
-  const [rents, setRents] = useState(() => rentService.listRents())
+  const [rents, setRents] = useState([])
   const [ownerRentForm, setOwnerRentForm] = useState({ unitId: '', amount: '', dueDate: '' })
   const [currentTime] = useState(() => Date.now())
   const statusFilter = searchParams.get('status')
@@ -71,6 +71,26 @@ export default function RentPage() {
       setRents((prev) => prev.map((item) => (Math.random() > 0.8 ? { ...item, status: item.status === 'PAID' ? 'OVERDUE' : 'PAID' } : item)))
     }, 20000)
     return () => clearInterval(timer)
+  }, [isOwner, isTenant])
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        if (isOwner || isTenant) {
+          const records = await rentService.listRentsRemote(isOwner ? 'OWNER' : 'TENANT')
+          if (!cancelled) setRents(records)
+          return
+        }
+        if (!cancelled) setRents(rentService.listRents())
+      } catch {
+        if (!cancelled) setRents(rentService.listRents())
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [isOwner, isTenant])
 
   const chartData = useMemo(() => monthlyRentSeries, [])

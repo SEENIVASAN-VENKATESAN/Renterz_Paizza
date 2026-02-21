@@ -3,8 +3,21 @@ import { API_CONFIG, TOKEN_KEY } from '../constants/app'
 
 let onUnauthorized = null
 
+/**
+ * Registers a callback that runs when the API returns HTTP 401.
+ */
 export const setUnauthorizedHandler = (handler) => {
   onUnauthorized = handler
+}
+
+/**
+ * Normalizes backend payloads by unwrapping `{ success, message, data }`.
+ */
+const unwrapApiResponse = (payload) => {
+  if (payload && typeof payload === 'object' && 'success' in payload && 'data' in payload) {
+    return payload.data
+  }
+  return payload
 }
 
 const api = axios.create({
@@ -24,7 +37,10 @@ api.interceptors.request.use(
 )
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = unwrapApiResponse(response.data)
+    return response
+  },
   (error) => {
     if (error?.response?.status === 401 && onUnauthorized) {
       onUnauthorized()

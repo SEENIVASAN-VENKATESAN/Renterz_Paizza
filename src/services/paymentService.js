@@ -1,6 +1,9 @@
 import { PAYMENTS_KEY } from '../constants/app'
 import { ROLES } from '../constants/roles'
 import { paymentsSeed, rentsSeed } from './mockData'
+import api from './api'
+
+const useDemoAuth = import.meta.env.VITE_ENABLE_DEMO_AUTH !== 'false'
 
 function readPayments() {
   try {
@@ -22,7 +25,54 @@ function getUnitAmount(unitNo) {
   return matched?.amount || 0
 }
 
+/**
+ * Transforms backend payment DTO to the payment table shape.
+ */
+function toPaymentItem(item) {
+  return {
+    id: item.paymentId,
+    tenant: item.tenantName || 'Tenant',
+    amount: Number(item.amount || 0),
+    date: String(item.paymentDate || '').slice(0, 10),
+    status: item.status,
+    method: item.paymentMode,
+    unit: item.unitNumber || '',
+    userId: item.userId ?? null,
+  }
+}
+
 export const paymentService = {
+  /**
+   * Loads current user's payments from backend.
+   */
+  async listPaymentsRemote() {
+    try {
+      const { data } = await api.get('/api/common/payments')
+      const content = Array.isArray(data) ? data : data?.content || []
+      return content.map(toPaymentItem)
+    } catch (error) {
+      if (!useDemoAuth) throw error
+      return readPayments()
+    }
+  },
+
+  /**
+   * Requests a payment gateway checkout session in safe/test mode.
+   */
+  async initGatewayCheckout(payload) {
+    const request = {
+      rentId: payload.rentId ?? null,
+      maintenanceId: payload.maintenanceId ?? null,
+      damageId: payload.damageId ?? null,
+      amount: Number(payload.amount || 0),
+      paymentMode: payload.paymentMode || 'UPI',
+      successUrl: payload.successUrl || window.location.href,
+      cancelUrl: payload.cancelUrl || window.location.href,
+    }
+    const { data } = await api.post('/api/common/payments/gateway/init', request)
+    return data
+  },
+
   listPayments() {
     return readPayments()
   },

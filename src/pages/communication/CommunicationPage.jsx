@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react'
 import { Mail, MessageCircle, PhoneCall, Smartphone } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import Skeleton from '../../components/ui/Skeleton'
 import StatusBadge from '../../components/ui/StatusBadge'
 import { usePageLoading } from '../../hooks/usePageLoading'
-import { communicationSeed } from '../../services/mockData'
+import { communicationService } from '../../services/communicationService'
+import { useToast } from '../../hooks/useToast'
 import { formatDateTime } from '../../utils/formatters'
 
 const channelIcons = {
@@ -15,6 +17,26 @@ const channelIcons = {
 
 export default function CommunicationPage() {
   const loading = usePageLoading(350)
+  const { showToast } = useToast()
+  const [items, setItems] = useState([])
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const records = await communicationService.listMyCommunications()
+        if (!cancelled) setItems(records)
+      } catch (error) {
+        if (!cancelled) {
+          showToast(error?.response?.data?.message || 'Unable to load communications.', 'error')
+        }
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [showToast])
 
   if (loading) {
     return (
@@ -34,8 +56,8 @@ export default function CommunicationPage() {
 
       <Card>
         <div className="space-y-3">
-          {communicationSeed.map((item) => {
-            const Icon = channelIcons[item.channel]
+          {items.map((item) => {
+            const Icon = channelIcons[item.channel] || MessageCircle
             return (
               <div key={item.id} className="rounded-xl border border-base p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
